@@ -394,7 +394,9 @@ def CSZL_superAnalysePARTroutine():
 
                 #正确信息打印
                 print ("PARTroutine SUCCESS at : %s \n" % ( time.ctime(time.time())))
-
+                print("%d %d \n"%(g_part_result[1]['s_code'],g_part_result[1]['s_zValue']))
+                print("%d %d \n"%(g_part_result[2]['s_code'],g_part_result[2]['s_zValue']))
+                print("%d %d \n"%(g_part_result[3]['s_code'],g_part_result[3]['s_zValue']))
 
             #如果出错
             except Exception as ex:
@@ -459,6 +461,8 @@ def CSZL_superTypeChange(z_type_result,tushare_result,date_max,update_index=1,s_
         z_type_result[update_index+i]['s_last']=tushare_result['pre_close'][i]
         z_type_result[update_index+i]['s_now']=tushare_result['price'][i]
         z_type_result[update_index+i]['s_high']=tushare_result['high'][i]
+        z_type_result[update_index+i]['s_low']=tushare_result['low'][i]
+
         z_type_result[update_index+i]['s_Cname']=tushare_result['name'][i]
 
         d=tushare_result['b1_v'][i]
@@ -726,7 +730,24 @@ def CSZL_DataOutput():
     CSZL_DataSave(g_all_info)
 
 
+def CSZL_YearCompoundInterest(AnReturn=1.035,TotalYear=20,EachCost=20000):
+    
 
+    TotalCost=TotalYear*EachCost
+
+    TotalGet=0
+
+
+    for i in range(0,TotalYear):
+
+        TotalGet=TotalGet+EachCost
+        TotalGet=TotalGet*AnReturn
+
+
+
+    print(TotalCost)
+    print("")
+    print(TotalGet)
 
 
 
