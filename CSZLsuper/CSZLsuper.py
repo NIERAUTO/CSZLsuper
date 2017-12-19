@@ -19,7 +19,7 @@ def Z_CSZL_superGETAllroutine():
     CSZLsuperGET.CSZL_superGETAllroutine()
 
 def Z_CSZL_superGETPARTroutine():
-    CSZLsuperGET.CSZL_superGETPARTroutine()
+    CSZLsuperGET.CSZL_superINFOupdate()
 
 def Z_CSZL_superAnalysePARTroutine():
     CSZLsuperGET.CSZL_superAnalysePARTroutine()

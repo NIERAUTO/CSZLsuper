@@ -13,7 +13,7 @@ import sys
 import math
 import os
 import numpy as np
-
+import functools
 
 z_init_nplist=[]
 g_all_result=[]
@@ -28,11 +28,34 @@ update_start=False
 
 Text_save_flag=True
 
-
+#初始化全局时间
 CurHour=int(time.strftime("%H", time.localtime()))
 CurMinute=int(time.strftime("%M", time.localtime()))
 
-#g_all_result4 = ts.get_realtime_quotes(['600000']) #根据全局list得到的结果
+
+#装饰器用于计算函数执行时间
+def CSZL_log(arg):
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kw):
+            if arg != func:
+                start_time = time.time()
+                print('%s %s():' % (arg, func.__name__))
+                result=func(*args, **kw)
+                print('函数执行完毕,用时:%sms' % ((time.time()-start_time)*1000))
+                return result
+            else:
+                start_time = time.time()
+                print('Execute %s():' % ( func.__name__))
+                result=func(*args, **kw)
+                print('函数执行完毕,用时:%sms' % ((time.time()-start_time)*1000))
+                return result
+        return wrapper
+    if isinstance(arg, str): 
+        return decorator
+    else:
+        return decorator(arg)
+
 
 def z_get(quote_name):
     try:
@@ -42,17 +65,6 @@ def z_get(quote_name):
         print (Exception,":",ex)
     return False,0
 
-'''
-g_all_list = [] #全局当前要更新的list
-#g_all_result = ts.get_realtime_quotes(['600000']) #根据全局list得到的结果
-correct_f,g_all_result = z_get(['600000','600001'])
-
-print(g_all_result)
-g_part_list = [] #重点关注的list
-g_all_analyse_result = ts.get_realtime_quotes(['600000']) #先这样初始化算了
-correct_f,g_all_analyse_result = z_get(['600000'])
-
-'''
 
 def EXIT():
     global g_exit_flag
@@ -113,7 +125,7 @@ def CSZL_superinit():
     17,18,-19,20,
     21,22,23,-24,
     25,26,27,28,
-    29,30,31,'测试')]
+    29,30,31,'----')]
 
     #新建使用空结构体新建np节点
     z_init_nplist = np.array(z_stock_empty_value, dtype=z_useful_stock_type)
@@ -196,7 +208,7 @@ def CSZL_superGETAllroutine():
 
                 #根据g_list_update_index更新传入数组
                 for i in range(update_cur):
-                    #temp=str(buff_result[g_list_update_index+i]['s_code']).zfill(6)
+                    #temp=str(buff_result[g_list_update_index+i]['s_code']).zfill(6)    #用于转化扩展字符，但是现在使用obj类型不需要了
                     temp=buff_result[g_list_update_index+i]['s_code']
                     update_buff_arr.append(temp)
 
@@ -206,11 +218,13 @@ def CSZL_superGETAllroutine():
                 #ztest=buff_dr_result.index
                 #ztest=buff_dr_result.dtypes
                 #ztest=buff_dr_result.values
-
-                #print (ztest)
+                
 
                 #打印更新信息
+                #i=os.system('cls') 用于清屏
                 print("当前更新到第：%d个\n"%(g_list_update_index))
+                
+
         
                 #将tushare的信息转换为我的格式
                 CSZL_superTypeChange(buff_result,buff_dr_result,update_cur,g_list_update_index,update_counter)
@@ -229,9 +243,6 @@ def CSZL_superGETAllroutine():
                         update_cur=update_rate
                         update_start=True
             
-
-                #np.set_printoptions(precision=2,suppress=True)
-                print(buff_result)
 
                 #===更新全局list===
                 g_all_result=buff_result.copy()
@@ -253,7 +264,7 @@ def CSZL_superGETAllroutine():
             print ('Waiting......\n')
 
         sleeptime=random.randint(50,99)
-        time.sleep(sleeptime/50)        
+        time.sleep(sleeptime/200)        
 
 
 def CSZL_superAnalysePARTroutine():
@@ -383,20 +394,14 @@ def CSZL_superAnalysePARTroutine():
                 #print(buff_hightolow)
  
 
-                #print(g_all_info)
-                #('s_ReachedFlag', int),('s_ReachedPrice', int),('s_ReachedTime', int),('s_Buy', int)]))
-
-
-
-
                 #===更新全局partlist===
                 g_part_result=buff_hightolow.copy()
 
                 #正确信息打印
                 print ("PARTroutine SUCCESS at : %s \n" % ( time.ctime(time.time())))
-                print("%d %d \n"%(g_part_result[1]['s_code'],g_part_result[1]['s_zValue']))
-                print("%d %d \n"%(g_part_result[2]['s_code'],g_part_result[2]['s_zValue']))
-                print("%d %d \n"%(g_part_result[3]['s_code'],g_part_result[3]['s_zValue']))
+                print("NO1:%d with score %d \n"%(g_part_result[1]['s_code'],g_part_result[1]['s_zValue']))
+                print("NO2:%d with score %d \n"%(g_part_result[2]['s_code'],g_part_result[2]['s_zValue']))
+                print("NO3:%d with score %d \n"%(g_part_result[3]['s_code'],g_part_result[3]['s_zValue']))
 
             #如果出错
             except Exception as ex:
@@ -414,18 +419,8 @@ def CSZL_superAnalysePARTroutine():
     
     return 0
 
-def CSZL_superGETPARTroutine():
+def CSZL_superINFOupdate():
 
-    '''
-    while True:
-        print ("Main Run at : %s \n" % ( time.ctime(time.time())))
-        getinput=input("是否退出:1表示退出 2表示读取信息\n")
-        if(getinput=='1'):
-            EXIT()
-
-        sleeptime=random.randint(50,99)
-        time.sleep(sleeptime/10)
-    '''
 
     return 0
 
@@ -443,6 +438,7 @@ def CSZL_superGETPARTroutine():
     
     return 0
 
+@CSZL_log
 def CSZL_superTypeChange(z_type_result,tushare_result,date_max,update_index=1,s_counter=0):
     """
     类型转换(我的type, tushare的type, 总共要更新几个数据, 更新的index,计数器)
@@ -501,7 +497,6 @@ def CSZL_superTypeChange(z_type_result,tushare_result,date_max,update_index=1,s_
         else:
             z_type_result[update_index+i]['s_plus']=((z_type_result[update_index+i]['s_now']-z_type_result[update_index+i]['s_last'])/z_type_result[update_index+i]['s_last'])*100
 
-
 def CSZL_AvailableCheck():
     global CurHour
     global CurMinute
@@ -535,21 +530,7 @@ def CSZL_ExitCheck():
         return True
     else:
         return False   
-
-
-'''
-def CSZL_ValueCal(singlestock):
-    LastValue=0
-
-    cur_plus=singlestock['s_plus']
-
-    if (cur_plus>=3) and (cur_plus<6):
-        LastValue+=cur_plus
-
-
-    return LastValue
-
-'''
+@CSZL_log('开始执行')
 def CSZL_ValueCal(cur_price,cur_high,cur_plus,cur_mktcap,cur_10Value):
     LastValue=0
     if(cur_price==0):
@@ -578,7 +559,7 @@ def CSZL_ValueCal(cur_price,cur_high,cur_plus,cur_mktcap,cur_10Value):
         LastValue-=0.5  
 
     return LastValue
-
+@CSZL_log('开始执行')
 def CSZL_DataSave(All_info):
     
     cwd = os.getcwd()
@@ -763,3 +744,4 @@ def CSZL_DataProtect():
     else:
         if donecounter==100:
             return (-1)
+
