@@ -222,7 +222,6 @@ def CSZL_superGETAllroutine():
                 #ztest=buff_dr_result.values
                 
 
-                #打印更新信息
                 #i=os.system('cls') 用于清屏
                 print("当前更新到第：%d个\n"%(g_list_update_index))
                 
@@ -248,7 +247,6 @@ def CSZL_superGETAllroutine():
 
                 #===更新全局list===
                 g_all_result=buff_result.copy()
-
         
                 #===打印成功信息===
 
