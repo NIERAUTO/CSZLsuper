@@ -15,6 +15,7 @@ import os
 import numpy as np
 import functools
 
+
 z_init_nplist=[]
 g_all_result=[]
 g_part_result=[]
@@ -109,14 +110,14 @@ def CSZL_superinit():
 
     #======初始化总得到的数据 g_all_result======#
     #初始化typedef s_high
-    z_useful_stock_type=np.dtype(([('s_key', int), ('s_code', object), ('s_plus', float),('s_now', float),
+    z_useful_stock_type=np.dtype(([('s_key', int), ('s_code', 'S6'), ('s_plus', float),('s_now', float),
     ('s_last', float),('s_high', float),('s_low', float),
     ('s_s1', float),('s_s2', float),('s_s3', float),('s_s4', float),('s_s5', float),
     ('s_b1', float),('s_b2', float),('s_b3', float),('s_b4', float),('s_b5', float),
     ('s_vol', float),('s_wholecap', float),('s_mktcap', float),('s_10Value', float),
     ('s_InFastUpdataList', int),('s_counter', int),('s_useful', int),('s_zValue', float),
     ('s_UpdateHour', int),('s_UpdateMinute', int),('s_ReachedHour', int),('s_ReachedMinute', int),
-    ('s_ReachedFlag', int),('s_ReachedPrice', float),('s_Buy', int),('s_Cname', object)]))
+    ('s_ReachedFlag', int),('s_ReachedPrice', float),('s_Buy', int),('s_Cname', 'S20')]))
     #新建空结构体元素
     z_stock_empty_value = [(0, '000000',0,3,
     4,5,6,
@@ -209,7 +210,8 @@ def CSZL_superGETAllroutine():
                 #根据g_list_update_index更新传入数组
                 for i in range(update_cur):
                     #temp=str(buff_result[g_list_update_index+i]['s_code']).zfill(6)    #用于转化扩展字符，但是现在使用obj类型不需要了
-                    temp=buff_result[g_list_update_index+i]['s_code']
+                    
+                    temp=str(buff_result[g_list_update_index+i]['s_code'],"utf-8")
                     update_buff_arr.append(temp)
 
                 #使用tushare接收数据
@@ -292,6 +294,7 @@ def CSZL_superAnalysePARTroutine():
     while g_exit_flag:
         
         if (CSZL_AvailableCheck() and update_start):
+        #if (CSZL_AvailableCheck() ):
             try:
                 #先吧原part_list的数据拿过来
                 buff_part_result=g_part_result.copy()
@@ -311,7 +314,7 @@ def CSZL_superAnalysePARTroutine():
                     #生成tushare输入的格式
                     for i in range(part_list_cur-1):
                         #temp=str(buff_part_result[1+i]['s_code']).zfill(6)
-                        temp=buff_part_result[1+i]['s_code']
+                        temp=str(buff_part_result[1+i]['s_code'],"utf-8")
                         update_buff_arr2.append(temp)
 
                     #使用tushare接收数据
@@ -325,10 +328,6 @@ def CSZL_superAnalysePARTroutine():
 
                 #得到all_list的长度
                 all_list_max=np.alen(buff_all_result)
-
-                #设置打印选项()
-                np.set_printoptions(precision=2,suppress=True,threshold=10000)
-
 
                 #从all_list中查找满足条件且不在part_list中的数据
         
@@ -399,9 +398,9 @@ def CSZL_superAnalysePARTroutine():
 
                 #正确信息打印
                 print ("PARTroutine SUCCESS at : %s \n" % ( time.ctime(time.time())))
-                print("NO1:%d with score %d \n"%(g_part_result[1]['s_code'],g_part_result[1]['s_zValue']))
-                print("NO2:%d with score %d \n"%(g_part_result[2]['s_code'],g_part_result[2]['s_zValue']))
-                print("NO3:%d with score %d \n"%(g_part_result[3]['s_code'],g_part_result[3]['s_zValue']))
+                print("NO1:%s with score %d \n"%(str(g_part_result[1]['s_Cname'],"utf-8"),g_part_result[1]['s_zValue']))
+                print("NO2:%s with score %d \n"%(str(g_part_result[2]['s_Cname'],"utf-8"),g_part_result[2]['s_zValue']))
+                print("NO3:%s with score %d \n"%(str(g_part_result[3]['s_Cname'],"utf-8"),g_part_result[3]['s_zValue']))
 
             #如果出错
             except Exception as ex:
@@ -458,9 +457,9 @@ def CSZL_superTypeChange(z_type_result,tushare_result,date_max,update_index=1,s_
         z_type_result[update_index+i]['s_now']=tushare_result['price'][i]
         z_type_result[update_index+i]['s_high']=tushare_result['high'][i]
         z_type_result[update_index+i]['s_low']=tushare_result['low'][i]
-
-        z_type_result[update_index+i]['s_Cname']=tushare_result['name'][i]
-
+        
+        z_type_result[update_index+i]['s_Cname']=tushare_result['name'][i].encode("utf-8") 
+        
         d=tushare_result['b1_v'][i]
         if(d!=""):
             z_type_result[update_index+i]['s_b1']=float(d)
@@ -530,7 +529,7 @@ def CSZL_ExitCheck():
         return True
     else:
         return False   
-@CSZL_log('开始执行')
+
 def CSZL_ValueCal(cur_price,cur_high,cur_plus,cur_mktcap,cur_10Value):
     LastValue=0
     if(cur_price==0):
@@ -559,7 +558,7 @@ def CSZL_ValueCal(cur_price,cur_high,cur_plus,cur_mktcap,cur_10Value):
         LastValue-=0.5  
 
     return LastValue
-@CSZL_log('开始执行')
+
 def CSZL_DataSave(All_info):
     
     cwd = os.getcwd()
@@ -692,7 +691,6 @@ def CSZL_HistoryDataAnalysis():
 
     aaa=1
 
-
 def CSZL_DataOutput():
     global g_all_info
 
@@ -709,7 +707,6 @@ def CSZL_DataOutput():
         g_all_info[i]['s_low']=g_all_result[i]['s_low']
 
     CSZL_DataSave(g_all_info)
-
 
 def CSZL_YearCompoundInterest(AnReturn=1.035,TotalYear=20,EachCost=20000):
     
