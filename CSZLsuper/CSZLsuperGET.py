@@ -266,7 +266,7 @@ def CSZL_superGETAllroutine():
             print ('Waiting......\n')
 
         sleeptime=random.randint(50,99)
-        time.sleep(sleeptime/200)        
+        time.sleep(sleeptime/50)        
 
 
 def CSZL_superAnalysePARTroutine():
