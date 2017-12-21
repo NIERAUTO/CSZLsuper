@@ -87,7 +87,7 @@ def Z_TXT_SAVE(savefname,wrongmessage):
 
         cwd = os.getcwd()
 
-        txtFile1 = cwd + '\\'+savefname
+        txtFile1 = cwd + '\\log\\'+savefname
         '''
         if os.path.exists(savefname):
             print ("Error:'%s' already exists" %savefname)
@@ -138,8 +138,7 @@ def CSZL_superinit():
     #从文档中初始化g_all_list
     #初始化文档路径
     cwd = os.getcwd()
-    
-    All_list_sourcepath=cwd+'\\'+'listtest.txt'
+    All_list_sourcepath=cwd+'\\data\\'+'listtest.txt'
 
     zf=open(All_list_sourcepath)
     #对于文档每行读取
@@ -560,7 +559,7 @@ def CSZL_ValueCal(cur_price,cur_high,cur_plus,cur_mktcap,cur_10Value):
 def CSZL_DataSave(All_info):
     
     cwd = os.getcwd()
-    txtFile1 = cwd + '\\'+'z_saveinfo.txt'
+    txtFile1 = cwd + '\\output\\'+'z_saveinfo.txt'
 
     fobj=open(txtFile1,'w')
     for singleinfo in All_info:
@@ -662,7 +661,9 @@ def CSZL_HistoryDataAnalysis():
 
     global g_all_info
 
-    HistoryLoaded=np.load("History_data.npy")
+    cwd = os.getcwd()
+    txtFile1 = cwd + '\\data\\'+'History_data.npy'   
+    HistoryLoaded=np.load(txtFile1)
 
     #对应的列表第4个第3项数据，第8天的(倒数第二天)
     
