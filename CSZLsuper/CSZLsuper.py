@@ -4,7 +4,7 @@
 import tushare as ts
 import threading
 from tkinter import *
-import hashlib
+#import hashlib
 import pandas as pd
 from pandas import DataFrame
 
@@ -44,11 +44,17 @@ if __name__ == '__main__':
     #初始化变量等
     CSZLsuperGET.CSZL_superinit()
 
-    #test1111
-
-
     #初始化10日数据
-    #CSZLsuperGET.CSZL_HistoryDataSave()
+
+    #初始化选项
+    getinput=int(input("是否初始化10日数据:1表示初始化 2表示不初始化\n"))
+    if(getinput==1):
+        CSZLsuperGET.CSZL_DataCreate()
+
+    getinput=int(input("是否初始化总数据:1表示初始化 2表示不初始化\n"))
+    if(getinput==1):
+        CSZLsuperGET.CSZL_HistoryDataSave()
+
 
     #读取10日数据
     CSZLsuperGET.CSZL_HistoryDataAnalysis()
@@ -58,9 +64,7 @@ if __name__ == '__main__':
         t.setDaemon(True)
         t.start()
 
-    #CSZLsuperGET.CSZL_superGETAllroutine()
 
-    #CSZLsuperGET.CSZL_superAnalysePARTroutine()
     
     while True:
         print ("Main Run at : %s \n" % ( time.ctime(time.time())))

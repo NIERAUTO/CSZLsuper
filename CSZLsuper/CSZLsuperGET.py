@@ -657,6 +657,48 @@ def CSZL_HistoryDataSave():
 
         np.save("History_data.npy", HistoryData10)
 
+def CSZL_DataCreate():
+
+    #buff_dr_result2=ts.get_today_all()
+    #buff_dr_result2.to_csv('test1.csv')
+    buff_dr_result=pd.read_csv('E:\\vs2015\\CSZLsuper\\CSZLsuper\\test1.csv',encoding= 'gbk')
+
+    ztest=buff_dr_result.index
+    ztest2=buff_dr_result.dtypes
+    ztest3=buff_dr_result.values
+    print(ztest)
+    print(ztest2)
+    print(ztest3)
+
+    cwd = os.getcwd()
+    txtFile1 = cwd + '\\data\\'+'initlist.txt'
+
+    fobj=open(txtFile1,'w')
+    i=1
+
+    for singleinfo in All:
+        print(singleinfo)
+        
+
+        '''
+        temp1=str(i)
+        temp2=singleinfo['code']
+        temp3=singleinfo['mktcap']
+
+
+        tempall=str(temp1)+'\t'+str(temp2)+'\t'+str(temp3)
+
+        fobj.write(tempall+'\n')
+
+        i=i+1
+        '''
+
+    fobj.close()
+
+
+
+
+
 def CSZL_HistoryDataAnalysis():
 
     global g_all_info
