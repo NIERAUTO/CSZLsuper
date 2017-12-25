@@ -417,6 +417,8 @@ def CSZL_superAnalysePARTroutine():
 
 def CSZL_superINFOupdate():
 
+    print("INFO DISPLAY START")    
+
 
     return 0
 
@@ -659,43 +661,36 @@ def CSZL_HistoryDataSave():
 
 def CSZL_DataCreate():
 
-    #buff_dr_result2=ts.get_today_all()
-    #buff_dr_result2.to_csv('test1.csv')
+    buff_dr_result2=ts.get_today_all()
+    buff_dr_result2.to_csv('test1.csv')
     buff_dr_result=pd.read_csv('E:\\vs2015\\CSZLsuper\\CSZLsuper\\test1.csv',encoding= 'gbk')
-
-    ztest=buff_dr_result.index
-    ztest2=buff_dr_result.dtypes
-    ztest3=buff_dr_result.values
-    print(ztest)
-    print(ztest2)
-    print(ztest3)
 
     cwd = os.getcwd()
     txtFile1 = cwd + '\\data\\'+'initlist.txt'
 
     fobj=open(txtFile1,'w')
-    i=1
+    i=0
 
-    for singleinfo in All:
-        print(singleinfo)
+    for singleinfo in buff_dr_result['code']:
         
-
-        '''
         temp1=str(i)
-        temp2=singleinfo['code']
-        temp3=singleinfo['mktcap']
+        temp2=str(buff_dr_result['code'][i]).zfill(6)
+        temp3=buff_dr_result['mktcap'][i]
+        temp4=buff_dr_result['per'][i]
+        temp5=buff_dr_result['pb'][i]
+        temp6=buff_dr_result['turnoverratio'][i]      
 
-
-        tempall=str(temp1)+'\t'+str(temp2)+'\t'+str(temp3)
-
-        fobj.write(tempall+'\n')
-
+        tempall=str(temp1)+'\t'+str(temp2)+'\t'+str(temp3)+'\t'+str(temp4)+'\t'+str(temp5)+'\t'+str(temp6)
+        
+        if(i==0):
+            fobj.write(tempall)
+        else:
+            fobj.write('\n'+tempall)
+        
         i=i+1
-        '''
+
 
     fobj.close()
-
-
 
 
 

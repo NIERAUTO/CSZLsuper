@@ -18,7 +18,7 @@ import CSZLsuperGET
 def Z_CSZL_superGETAllroutine():
     CSZLsuperGET.CSZL_superGETAllroutine()
 
-def Z_CSZL_superGETPARTroutine():
+def Z_CSZL_superINFOupdate():
     CSZLsuperGET.CSZL_superINFOupdate()
 
 def Z_CSZL_superAnalysePARTroutine():
@@ -30,8 +30,8 @@ def Z_CSZL_superAnalysePARTroutine():
 CSZL_threads = []
 t_GETAllroutine = threading.Thread(target=Z_CSZL_superGETAllroutine, args=())
 CSZL_threads.append(t_GETAllroutine)
-t_GETPARTroutine = threading.Thread(target=Z_CSZL_superGETPARTroutine, args=())
-CSZL_threads.append(t_GETPARTroutine)
+t_INFOroutine = threading.Thread(target=Z_CSZL_superINFOupdate, args=())
+CSZL_threads.append(t_INFOroutine)
 t_AnalysePARTroutine = threading.Thread(target=Z_CSZL_superAnalysePARTroutine, args=())
 CSZL_threads.append(t_AnalysePARTroutine)
 #====================
@@ -47,11 +47,11 @@ if __name__ == '__main__':
     #初始化10日数据
 
     #初始化选项
-    getinput=int(input("是否初始化10日数据:1表示初始化 2表示不初始化\n"))
+    getinput=int(input("是否初始化列表数据:1表示初始化 2表示不初始化\n"))
     if(getinput==1):
         CSZLsuperGET.CSZL_DataCreate()
 
-    getinput=int(input("是否初始化总数据:1表示初始化 2表示不初始化\n"))
+    getinput=int(input("是否初始化历史总数据:1表示初始化 2表示不初始化\n"))
     if(getinput==1):
         CSZLsuperGET.CSZL_HistoryDataSave()
 
@@ -79,7 +79,6 @@ if __name__ == '__main__':
 
             break
 
-        CSZLsuperGET.Z_PRINT()
         sleeptime=random.randint(50,99)
         time.sleep(sleeptime/10)
     
