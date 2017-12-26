@@ -41,8 +41,7 @@ CSZL_threads.append(t_AnalysePARTroutine)
 if __name__ == '__main__':
 
 
-    #初始化变量等
-    CSZLsuperGET.CSZL_superinit()
+
 
     #初始化10日数据
 
@@ -51,9 +50,13 @@ if __name__ == '__main__':
     if(getinput==1):
         CSZLsuperGET.CSZL_DataCreate()
 
+    #初始化变量等
+    CSZLsuperGET.CSZL_superinit()
+
     getinput=int(input("是否初始化历史总数据:1表示初始化 2表示不初始化\n"))
     if(getinput==1):
         CSZLsuperGET.CSZL_HistoryDataSave()
+
 
 
     #读取10日数据

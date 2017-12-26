@@ -22,16 +22,27 @@ g_part_result=[]
 g_all_info=[]
 
 
-g_list_update_index=0
+g_list_update_index=0   #全局更新数据位置
 g_exit_flag=True
 update_start=False
 
-
-Text_save_flag=True
+#错误信息打印，暂时没用
+log_save_flag=True
 
 #初始化全局时间
 CurHour=int(time.strftime("%H", time.localtime()))
 CurMinute=int(time.strftime("%M", time.localtime()))
+
+
+#所有的用于cmd信息输出的变量
+
+INFO_all_routine=0  #1代表线程正常 -1代表线程异常 0代表线程等待
+INFO_part_routine=0 #1代表线程正常 -1代表线程异常 0代表线程等待
+
+
+
+
+
 
 
 #装饰器用于计算函数执行时间
@@ -59,8 +70,12 @@ def CSZL_log(arg):
 
 
 def z_get(quote_name):
+    """
+    todo之后用这个来调用tushare接口
+    """
+
     try:
-        net_result = ts.get_realtime_quotes(quote_name) #先这样初始化算了   
+        net_result = ts.get_realtime_quotes(quote_name)   
         return True,net_result
     except Exception as ex:
         print (Exception,":",ex)
@@ -68,22 +83,31 @@ def z_get(quote_name):
 
 
 def EXIT():
+    """
+    todo之后可能会用class来实现退出
+    """
     global g_exit_flag
 
     g_exit_flag=False
 
 def Z_PRINT():
+    """
+    用来打印信息
+    """
+
     global g_all_result
     np.set_printoptions(precision=2,suppress=True,threshold=10000)
 
     print(g_all_result)
 
-def Z_TXT_SAVE(savefname,wrongmessage):
-
-    global Text_save_flag
+def Z_LOG_SAVE(savefname,wrongmessage):
+    """
+    保存错误信息
+    """
+    global log_save_flag
 
     if True:
-        Text_save_flag=False
+        log_save_flag=False
 
         cwd = os.getcwd()
 
@@ -97,7 +121,7 @@ def Z_TXT_SAVE(savefname,wrongmessage):
         fobj.write('\n'+wrongmessage)
         fobj.close()
 
-        Text_save_flag=True
+        log_save_flag=True
 
 def CSZL_superinit():
     global g_all_result
@@ -117,7 +141,10 @@ def CSZL_superinit():
     ('s_vol', float),('s_wholecap', float),('s_mktcap', float),('s_10Value', float),
     ('s_InFastUpdataList', int),('s_counter', int),('s_useful', int),('s_zValue', float),
     ('s_UpdateHour', int),('s_UpdateMinute', int),('s_ReachedHour', int),('s_ReachedMinute', int),
-    ('s_ReachedFlag', int),('s_ReachedPrice', float),('s_Buy', int),('s_Cname', 'S20')]))
+    ('s_ReachedFlag', int),('s_ReachedPrice', float),('s_Buy', int),('s_Cname', 'S20'),
+    ('s_per', float),('s_pb', float),('s_turnoverratio', float),('s_reserve1', float),
+    ('s_reserve2', float),('s_reserve3', float),('s_reserve4', float)
+    ]))
     #新建空结构体元素
     z_stock_empty_value = [(0, '000000',0,3,
     4,5,6,
@@ -126,7 +153,9 @@ def CSZL_superinit():
     17,18,-19,20,
     21,22,23,-24,
     25,26,27,28,
-    29,30,31,'----')]
+    29,30,31,'----',
+    33,34,35,36,
+    37,38,39)]
 
     #新建使用空结构体新建np节点
     z_init_nplist = np.array(z_stock_empty_value, dtype=z_useful_stock_type)
@@ -135,6 +164,8 @@ def CSZL_superinit():
 
     #print (z_init_nplist)
 
+    '''
+    #UNDEFINE1226
     #从文档中初始化g_all_list
     #初始化文档路径
     cwd = os.getcwd()
@@ -148,12 +179,33 @@ def CSZL_superinit():
         #填充此np节点
         z_temp_nplist['s_key']=int(lines.split()[0])
         z_temp_nplist['s_code']=str(lines.split()[1])
-        z_temp_nplist['s_wholecap']=str(lines.split()[2])
+        z_temp_nplist['s_mktcap']=str(lines.split()[2])
 
         #将次节点更新到 g_all_result
         g_all_result=np.concatenate((g_all_result,z_temp_nplist),axis=0)
         
     zf.close()
+    '''
+    #直接从tushare保存的csv中初始化数据
+
+    cwd = os.getcwd()
+    txtFile = cwd + '\\data\\'+'today_all_data.csv'
+
+    buff_dr_result=pd.read_csv(txtFile,encoding= 'gbk')
+
+
+    for i in range(len(buff_dr_result['code'])):
+        z_temp_nplist = z_init_nplist.copy()
+
+        z_temp_nplist['s_key']=str(i+1)
+        z_temp_nplist['s_code']=str(buff_dr_result['code'][i]).zfill(6)
+        z_temp_nplist['s_mktcap']=buff_dr_result['mktcap'][i]
+        z_temp_nplist['s_per']=buff_dr_result['per'][i]
+        z_temp_nplist['s_pb']=buff_dr_result['pb'][i]
+        z_temp_nplist['s_turnoverratio']=buff_dr_result['turnoverratio'][i]      
+        
+        g_all_result=np.concatenate((g_all_result,z_temp_nplist),axis=0)
+
 
     #全局信息数组就放在这个数组里面，allroutine不负责更新后面的信息模块，之所以并在一起是想省力
     g_all_info=g_all_result.copy()
@@ -164,7 +216,7 @@ def CSZL_superinit():
     #使用空元素初始化g_part_list(np型的)
     g_part_result = np.array(z_stock_empty_value, dtype=z_useful_stock_type)       
 
-    #======初始化线程退出flag g_exit_flag======#
+    #======初始化线程计数======#
     g_list_update_index=1
 
     #======初始化线程退出flag g_exit_flag======#
@@ -178,6 +230,8 @@ def CSZL_superGETAllroutine():
     global g_all_result
     global g_exit_flag
     global update_start
+
+    global INFO_all_routine
 
     #一次更新的数量初始化为30(为了配合tushare)，当发生剩余更新量较少的情况时，减少本次更新量
     update_rate=30
@@ -222,7 +276,7 @@ def CSZL_superGETAllroutine():
                 
 
                 #i=os.system('cls') 用于清屏
-                print("当前更新到第：%d个\n"%(g_list_update_index))
+                #print("当前更新到第：%d个\n"%(g_list_update_index))
                 
 
         
@@ -247,23 +301,26 @@ def CSZL_superGETAllroutine():
                 #===更新全局list===
                 g_all_result=buff_result.copy()
         
-                #===打印成功信息===
+                #===成功信息更新===
 
-                print ("Allroutine SUCCESS at : %s \n" % ( time.ctime(time.time())))
+                INFO_all_routine=1
+                #print ("Allroutine SUCCESS at : %s \n" % ( time.ctime(time.time())))
             
 
             except Exception as ex:
+                INFO_all_routine=-1                
                 wrongmessage="Allroutine FAIL at : %s \n" % ( time.ctime(time.time()))
-                print (wrongmessage)
+                #print (wrongmessage)
                 wrongEx=str(ex)
-                Z_TXT_SAVE('AllWrongMessage.txt',wrongmessage+wrongEx)
+                Z_LOG_SAVE('AllWrongMessage.txt',wrongmessage+wrongEx)
                 print (Exception,":",ex)
 
         else:
-            print ('Waiting......\n')
+            INFO_all_routine=0
+            #print ('Waiting......\n')
 
         sleeptime=random.randint(50,99)
-        time.sleep(sleeptime/50)        
+        time.sleep(sleeptime/200)        
 
 
 def CSZL_superAnalysePARTroutine():
@@ -278,8 +335,10 @@ def CSZL_superAnalysePARTroutine():
     #用于初始化的节点
     global z_init_nplist
 
-
+    #在all滚完一次以后再执行
     global update_start
+
+    global INFO_part_routine
 
     #part最多观察数量为20
     PART_LIST_MAX=20
@@ -394,21 +453,22 @@ def CSZL_superAnalysePARTroutine():
                 g_part_result=buff_hightolow.copy()
 
                 #正确信息打印
-                print ("PARTroutine SUCCESS at : %s \n" % ( time.ctime(time.time())))
-                print("NO1:%s with score %d \n"%(str(g_part_result[1]['s_Cname'],"utf-8"),g_part_result[1]['s_zValue']))
-                print("NO2:%s with score %d \n"%(str(g_part_result[2]['s_Cname'],"utf-8"),g_part_result[2]['s_zValue']))
-                print("NO3:%s with score %d \n"%(str(g_part_result[3]['s_Cname'],"utf-8"),g_part_result[3]['s_zValue']))
+                INFO_part_routine=1
+                #print ("PARTroutine SUCCESS at : %s \n" % ( time.ctime(time.time())))
+
 
             #如果出错
             except Exception as ex:
                 wrongmessage="PARTroutine FAIL at : %s \n" % ( time.ctime(time.time()))
-                print (wrongmessage)
+                #print (wrongmessage)
+                INFO_part_routine=-1
                 wrongEx=str(ex)
-                Z_TXT_SAVE('PARTWrongMessage.txt',wrongmessage+wrongEx)
+                Z_LOG_SAVE('PARTWrongMessage.txt',wrongmessage+wrongEx)
                 print (Exception,":",ex)
 
         else:
-            print ('Waiting......\n')
+            INFO_part_routine=0
+            #print ('Waiting......\n')
 
         sleeptime=random.randint(50,99)
         time.sleep(sleeptime/10)    
@@ -416,12 +476,56 @@ def CSZL_superAnalysePARTroutine():
     return 0
 
 def CSZL_superINFOupdate():
+    """
+    CMD界面显示
+    """
 
-    print("INFO DISPLAY START")    
+    global g_exit_flag
+
+    global INFO_all_routine
+    global g_list_update_index
+
+    global INFO_part_routine
+
+    global g_part_result
 
 
+
+    print("INFO DISPLAY START")
+    time.sleep(2)   
+
+
+    while g_exit_flag:
+        os.system('cls')
+        try:
+            print ("CSZLsuper running at %s \n" % ( time.ctime(time.time())))
+
+            if INFO_all_routine==1:
+                print ("ALLroutine : Runing")
+            elif INFO_all_routine==(-1):
+                print ("ALLroutine : Wrong")
+            else:
+                print ("ALLroutine : Waiting")
+            print("更新队列：%d个\n"%(g_list_update_index))
+
+            if INFO_part_routine==1:
+                print ("PARTroutine : Runing")
+                print("NO1:%s with score %d \n"%(str(g_part_result[1]['s_Cname'],"utf-8"),g_part_result[1]['s_zValue']))
+                print("NO2:%s with score %d \n"%(str(g_part_result[2]['s_Cname'],"utf-8"),g_part_result[2]['s_zValue']))
+                print("NO3:%s with score %d \n"%(str(g_part_result[3]['s_Cname'],"utf-8"),g_part_result[3]['s_zValue']))
+            elif INFO_part_routine==(-1):
+                print ("PARTroutine : Wrong")
+            else:
+                print ("PARTroutine : Waiting")
+
+
+        except Exception as ex:
+            print (Exception,":",ex)
+        
+        time.sleep(0.5)
     return 0
 
+    '''
     global g_all_analyse_result
 
     cur_counter=0
@@ -432,11 +536,11 @@ def CSZL_superINFOupdate():
         if buff_c>0.05:
             buff_d=0
         cur_counter+=1
-
+    '''
     
-    return 0
 
-@CSZL_log
+
+#@CSZL_log
 def CSZL_superTypeChange(z_type_result,tushare_result,date_max,update_index=1,s_counter=0):
     """
     类型转换(我的type, tushare的type, 总共要更新几个数据, 更新的index,计数器)
@@ -482,7 +586,9 @@ def CSZL_superTypeChange(z_type_result,tushare_result,date_max,update_index=1,s_
 
         #ztest222=float(1000000)/(float(tushare_result['price'][i])*z_type_result[update_index+i]['s_wholecap']+1)
 
-        z_type_result[update_index+i]['s_mktcap']=(float(tushare_result['price'][i])*z_type_result[update_index+i]['s_wholecap'])
+        #z_type_result[update_index+i]['s_mktcap']=(float(tushare_result['price'][i])*z_type_result[update_index+i]['s_wholecap'])
+
+
         '''
         if z_type_result[update_index+i]['s_wholecap']==0:
             z_type_result[update_index+i]['s_mktcap']=0
@@ -563,28 +669,29 @@ def CSZL_DataSave(All_info):
     cwd = os.getcwd()
     txtFile1 = cwd + '\\output\\'+'z_saveinfo.txt'
 
-    fobj=open(txtFile1,'w')
-    for singleinfo in All_info:
-        temp1=singleinfo['s_code']
-        temp2=singleinfo['s_ReachedFlag']
-        temp3=singleinfo['s_ReachedHour']
-        temp4=singleinfo['s_ReachedMinute']
-        temp5=singleinfo['s_ReachedPrice']
-        temp6=singleinfo['s_now']
+    with open(txtFile1,'w') as fobj:
+        #fobj=open(txtFile1,'w')
+        for singleinfo in All_info:
+            temp1=singleinfo['s_code']
+            temp2=singleinfo['s_ReachedFlag']
+            temp3=singleinfo['s_ReachedHour']
+            temp4=singleinfo['s_ReachedMinute']
+            temp5=singleinfo['s_ReachedPrice']
+            temp6=singleinfo['s_now']
 
-        temp7=singleinfo['s_plus']
-        temp8=singleinfo['s_last']
-        temp9=singleinfo['s_high']
-        temp10=singleinfo['s_low']
+            temp7=singleinfo['s_plus']
+            temp8=singleinfo['s_last']
+            temp9=singleinfo['s_high']
+            temp10=singleinfo['s_low']
 
-        tempall=str(temp1)+'\t'+str(temp2)+'\t'+str(temp3)+'\t'+str(temp4)+'\t'+str(temp5)+'\t'+str(temp6)+'\t'
+            tempall=str(temp1)+'\t'+str(temp2)+'\t'+str(temp3)+'\t'+str(temp4)+'\t'+str(temp5)+'\t'+str(temp6)+'\t'
 
 
-        tempall2=str(temp7)+'\t'+str(temp8)+'\t'+str(temp9)+'\t'+str(temp10)
-        fobj.write(tempall+tempall2+'\n')
+            tempall2=str(temp7)+'\t'+str(temp8)+'\t'+str(temp9)+'\t'+str(temp10)
+            fobj.write(tempall+tempall2+'\n')
 
-    fobj.close()
 
+#@CSZL_log
 def CSZL_HistoryDataSave():
 
     DayNow=datetime.datetime.now()
@@ -631,7 +738,8 @@ def CSZL_HistoryDataSave():
 
         for z in range(len(g_all_result)):
             try:
-                temp=str(g_all_result[z]['s_code']).zfill(6)
+                
+                temp=str(g_all_result[z]['s_code'],"utf-8")
                 #print(temp)
                 HistoryData10[(z,0,0)]=temp
                 z222=ts.get_k_data(temp,start=otherStyleTime, end=otherStyleTime2)
@@ -654,43 +762,54 @@ def CSZL_HistoryDataSave():
                 wrongmessage="HistoryRoutine FAIL at : %s \n" % ( time.ctime(time.time()))
                 print (wrongmessage)
                 wrongEx=str(ex)
-                Z_TXT_SAVE('HistoryWrongMessage.txt',wrongmessage+wrongEx)
+                Z_LOG_SAVE('HistoryWrongMessage.txt',wrongmessage+wrongEx)
                 print (Exception,":",ex)
 
-        np.save("History_data.npy", HistoryData10)
+        cwd = os.getcwd()
+        txtFile = cwd + '\\data\\'+'History_data.npy'
+        np.save(txtFile, HistoryData10)
 
 def CSZL_DataCreate():
 
-    buff_dr_result2=ts.get_today_all()
-    buff_dr_result2.to_csv('test1.csv')
-    buff_dr_result=pd.read_csv('E:\\vs2015\\CSZLsuper\\CSZLsuper\\test1.csv',encoding= 'gbk')
+    #todo 加个错误处理
+    buff_dr_result=ts.get_today_all()
 
+    cwd = os.getcwd()
+    txtFile = cwd + '\\data\\'+'today_all_data.csv'
+    buff_dr_result.to_csv(txtFile)
+
+
+    #buff_dr_result=pd.read_csv('E:\\vs2015\\CSZLsuper\\CSZLsuper\\test1.csv',encoding= 'gbk')
+
+    '''
+    #UNDEFINE1226
     cwd = os.getcwd()
     txtFile1 = cwd + '\\data\\'+'initlist.txt'
 
-    fobj=open(txtFile1,'w')
-    i=0
+    with open(txtFile1,'w') as fobj:
+    
+        i=0
 
-    for singleinfo in buff_dr_result['code']:
+        for singleinfo in buff_dr_result['code']:
         
-        temp1=str(i)
-        temp2=str(buff_dr_result['code'][i]).zfill(6)
-        temp3=buff_dr_result['mktcap'][i]
-        temp4=buff_dr_result['per'][i]
-        temp5=buff_dr_result['pb'][i]
-        temp6=buff_dr_result['turnoverratio'][i]      
+            temp1=str(i+1)
+            temp2=str(buff_dr_result['code'][i]).zfill(6)
+            temp3=buff_dr_result['mktcap'][i]
+            temp4=buff_dr_result['per'][i]
+            temp5=buff_dr_result['pb'][i]
+            temp6=buff_dr_result['turnoverratio'][i]      
 
-        tempall=str(temp1)+'\t'+str(temp2)+'\t'+str(temp3)+'\t'+str(temp4)+'\t'+str(temp5)+'\t'+str(temp6)
+            tempall=str(temp1)+'\t'+str(temp2)+'\t'+str(temp3)+'\t'+str(temp4)+'\t'+str(temp5)+'\t'+str(temp6)
         
-        if(i==0):
-            fobj.write(tempall)
-        else:
-            fobj.write('\n'+tempall)
+            if(i==0):
+                fobj.write(tempall)
+            else:
+                fobj.write('\n'+tempall)
         
-        i=i+1
+            i=i+1
+    '''
 
 
-    fobj.close()
 
 
 
@@ -719,13 +838,6 @@ def CSZL_HistoryDataAnalysis():
             print (Exception,":",ex)
 
 
-    #buff_dr_result.to_excel('SUPER超神的天赋'+bb+'.xlsx')
-    #c=zmctest1105[1][2]
-    #zmctest1109=np.reshape(zmctest1107,(-1,6))
-
-    #np.savetxt("SUPER超神的ADC.txt",zmctest1109)
-
-    aaa=1
 
 def CSZL_DataOutput():
     global g_all_info
