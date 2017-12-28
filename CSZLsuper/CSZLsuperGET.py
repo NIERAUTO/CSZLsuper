@@ -21,6 +21,9 @@ g_all_result=[]
 g_part_result=[]
 g_all_info=[]
 
+SecretData_A=[]
+
+SecretData_B=[]
 
 g_list_update_index=0   #全局更新数据位置
 g_exit_flag=True
@@ -136,7 +139,7 @@ def CSZL_superinit():
     #初始化typedef s_high
     z_useful_stock_type=np.dtype(([('s_key', int), ('s_code', 'S6'), ('s_plus', float),('s_now', float),
     ('s_last', float),('s_high', float),('s_low', float),
-    ('s_s1', float),('s_s2', float),('s_s3', float),('s_s4', float),('s_s5', float),
+    ('s_reserve5', float),('s_s2', float),('s_s3', float),('s_s4', float),('s_s5', float),
     ('s_b1', float),('s_b2', float),('s_b3', float),('s_b4', float),('s_b5', float),
     ('s_vol', float),('s_wholecap', float),('s_mktcap', float),('s_10Value', float),
     ('s_InFastUpdataList', int),('s_counter', int),('s_useful', int),('s_zValue', float),
@@ -222,6 +225,9 @@ def CSZL_superinit():
     #======初始化线程退出flag g_exit_flag======#
     g_exit_flag=True
 
+    CSZL_SecretDataCreate()
+
+    CSZL_SecretDataTest()
 
 
 def CSZL_superGETAllroutine():
@@ -270,18 +276,12 @@ def CSZL_superGETAllroutine():
                 #使用tushare接收数据
                 buff_dr_result = ts.get_realtime_quotes(update_buff_arr)
 
-                #ztest=buff_dr_result.index
-                #ztest=buff_dr_result.dtypes
-                #ztest=buff_dr_result.values
-                
-
-                #i=os.system('cls') 用于清屏
-                #print("当前更新到第：%d个\n"%(g_list_update_index))
-                
-
-        
+  
                 #将tushare的信息转换为我的格式
                 CSZL_superTypeChange(buff_result,buff_dr_result,update_cur,g_list_update_index,update_counter)
+                
+                #隐藏信息更新
+                CSZL_SecretDataUpdate(buff_dr_result,update_cur,g_list_update_index)
 
                 #数据指针更新
                 g_list_update_index+=update_cur
@@ -296,6 +296,7 @@ def CSZL_superGETAllroutine():
                         g_list_update_index=1
                         update_cur=update_rate
                         update_start=True
+
             
 
                 #===更新全局list===
@@ -562,12 +563,13 @@ def CSZL_superTypeChange(z_type_result,tushare_result,date_max,update_index=1,s_
         z_type_result[update_index+i]['s_low']=tushare_result['low'][i]
         
         z_type_result[update_index+i]['s_Cname']=tushare_result['name'][i].encode("utf-8") 
-        
+
+        '''
         d=tushare_result['b1_v'][i]
         if(d!=""):
             z_type_result[update_index+i]['s_b1']=float(d)
         #z_type_result[update_index+i]['s_b1']=float(tushare_result['b1_v'][i])
-        '''
+        
         z_type_result[update_index+i]['s_b1']=float(tushare_result['b1_v'][i])
         z_type_result[update_index+i]['s_s1']=float(tushare_result['a1_v'][i])
         z_type_result[update_index+i]['s_b2']=float(tushare_result['b2_v'][i])
@@ -700,7 +702,7 @@ def CSZL_HistoryDataSave():
     otherStyleTime = NDayAgo.strftime("%Y-%m-%d")
     otherStyleTime2 = DayNow.strftime("%Y-%m-%d")
 
-    HistoryData10=np.zeros((4000,6,50),dtype=float)  
+    HistoryData10=np.zeros((4000,6,50),dtype=float)
     '''
     zempty=ts.get_k_data("888888",start=otherStyleTime, end=otherStyleTime2)
     z222=ts.get_k_data("888888",start=otherStyleTime, end=otherStyleTime2)
@@ -809,6 +811,86 @@ def CSZL_DataCreate():
             i=i+1
     '''
 
+
+
+def CSZL_SecretDataCreate():
+
+    global SecretData_A
+    global SecretData_B
+    
+    #code,otherinfo + time(minute),(time+b1p1~s5p5)
+    SecretData_A=np.zeros((4000,11,21),dtype=float)
+
+    SecretData_B=np.zeros((4000,241,21),dtype=float)
+
+    #todo used for highspeed_test
+    #SecretData_C=np.zeros((100,101,21),dtype=float)
+
+    for z in range(len(g_all_result)):
+        try:
+                
+            temp=str(g_all_result[z]['s_code'],"utf-8")
+            #print(temp)
+            SecretData_A[(z,0,0)]=temp
+
+
+
+        except Exception as ex:
+            sleeptime=random.randint(50,99)
+            time.sleep(sleeptime/100)
+            print (Exception,":",ex)
+
+def CSZL_SecretDataUpdate(tushare_result,date_max,update_index=1):
+
+    global CurHour
+    global CurMinute
+
+
+    global SecretData_A
+    global SecretData_B
+    
+
+    for i in range(date_max):
+        #zstring=buff_result[g_list_update_index+i]['s_code']
+
+        #z_type_result[update_index+i]['s_UpdateFlag']=1
+            
+        z_type_result[update_index+i]['s_last']=tushare_result['pre_close'][i]
+
+
+
+
+def CSZL_SecretDataTest():
+
+    global SecretData_A
+    global SecretData_B
+
+    #np.set_printoptions(threshold=np.inf)
+
+    np.set_printoptions(precision=2,suppress=True,threshold=100)
+    print(SecretData_A)
+
+
+
+    z=1
+
+
+@CSZL_log
+def CSZL_SecretDataSave():
+
+    global SecretData_A
+    global SecretData_B
+    
+
+    cwd = os.getcwd()
+    now=datetime.datetime.now()
+    now=now.strftime('%Y%m%d')
+
+    txtFileA = cwd + '\\data\\secret\\secretA'+now+'.npy'
+    np.save(txtFileA, SecretData_A)
+
+    txtFileB = cwd + '\\data\\secret\\secretB'+now+'.npy'
+    np.save(txtFileB, SecretData_B)
 
 
 
