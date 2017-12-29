@@ -23,7 +23,7 @@ g_all_info=[]
 
 SecretData_A=[]
 
-SecretData_B=[]
+#SecretData_B=[]
 
 g_list_update_index=0   #全局更新数据位置
 g_exit_flag=True
@@ -217,7 +217,8 @@ def CSZL_superinit():
 
     #======初始化重点观察的数据 g_part_list======#
     #使用空元素初始化g_part_list(np型的)
-    g_part_result = np.array(z_stock_empty_value, dtype=z_useful_stock_type)       
+    #g_part_result = np.array(z_stock_empty_value, dtype=z_useful_stock_type)  
+    g_part_result = z_init_nplist.copy()      
 
     #======初始化线程计数======#
     g_list_update_index=1
@@ -816,12 +817,12 @@ def CSZL_DataCreate():
 def CSZL_SecretDataCreate():
 
     global SecretData_A
-    global SecretData_B
+    #global SecretData_B
     
     #code,otherinfo + time(minute),(time+b1p1~s5p5)
-    SecretData_A=np.zeros((4000,11,21),dtype=float)
+    SecretData_A=np.zeros((4000,270,21),dtype=float)
 
-    SecretData_B=np.zeros((4000,241,21),dtype=float)
+    #SecretData_B=np.zeros((4000,241,21),dtype=float)
 
     #todo used for highspeed_test
     #SecretData_C=np.zeros((100,101,21),dtype=float)
@@ -840,6 +841,12 @@ def CSZL_SecretDataCreate():
             time.sleep(sleeptime/100)
             print (Exception,":",ex)
 
+    '''
+    print(SecretData_A[(0,0,0)])
+    print(SecretData_A[(1,0,0)])
+    print(SecretData_A[(2,0,0)])
+    '''
+
 def CSZL_SecretDataUpdate(tushare_result,date_max,update_index=1):
 
     global CurHour
@@ -847,28 +854,68 @@ def CSZL_SecretDataUpdate(tushare_result,date_max,update_index=1):
 
 
     global SecretData_A
-    global SecretData_B
+    #global SecretData_B
     
 
     for i in range(date_max):
-        #zstring=buff_result[g_list_update_index+i]['s_code']
 
-        #z_type_result[update_index+i]['s_UpdateFlag']=1
+        #获取当前数据更新位置
+        CurIndex=int(SecretData_A[(update_index+i,0,1)])
+        #超范围检测
+        if CurIndex>269:
+            return
+
+        try:
+            if(tushare_result['b1_p'][i]==""or tushare_result['a1_p'][i]==""or tushare_result['b1_v'][i]==""or tushare_result['a1_v'][i]==""):
+                continue
+
+            #更新时间记录
             
-        z_type_result[update_index+i]['s_last']=tushare_result['pre_close'][i]
+            z2=update_index+i
+            #if(z2==176):
+                #print(tushare_result['b1_v'][i])
 
+            SecretData_A[(update_index+i,CurIndex,0)]=str(CurHour*100+CurMinute)
 
+            #更新数据
+            SecretData_A[(update_index+i,CurIndex,1)]=tushare_result['b1_v'][i]
+            SecretData_A[(update_index+i,CurIndex,2)]=tushare_result['b1_p'][i]
+            SecretData_A[(update_index+i,CurIndex,3)]=tushare_result['b2_v'][i]
+            SecretData_A[(update_index+i,CurIndex,4)]=tushare_result['b2_p'][i]
+            SecretData_A[(update_index+i,CurIndex,5)]=tushare_result['b3_v'][i]
+            SecretData_A[(update_index+i,CurIndex,6)]=tushare_result['b3_p'][i]
+            SecretData_A[(update_index+i,CurIndex,7)]=tushare_result['b4_v'][i]
+            SecretData_A[(update_index+i,CurIndex,8)]=tushare_result['b4_p'][i]
+            SecretData_A[(update_index+i,CurIndex,9)]=tushare_result['b5_v'][i]
+            SecretData_A[(update_index+i,CurIndex,10)]=tushare_result['b5_p'][i]
+
+            SecretData_A[(update_index+i,CurIndex,11)]=tushare_result['a1_v'][i]
+            SecretData_A[(update_index+i,CurIndex,12)]=tushare_result['a1_p'][i]
+            SecretData_A[(update_index+i,CurIndex,13)]=tushare_result['a2_v'][i]
+            SecretData_A[(update_index+i,CurIndex,14)]=tushare_result['a2_p'][i]
+            SecretData_A[(update_index+i,CurIndex,15)]=tushare_result['a3_v'][i]
+            SecretData_A[(update_index+i,CurIndex,16)]=tushare_result['a3_p'][i]
+            SecretData_A[(update_index+i,CurIndex,17)]=tushare_result['a4_v'][i]
+            SecretData_A[(update_index+i,CurIndex,18)]=tushare_result['a4_p'][i]
+            SecretData_A[(update_index+i,CurIndex,19)]=tushare_result['a5_v'][i]
+            SecretData_A[(update_index+i,CurIndex,20)]=tushare_result['a5_p'][i]
+
+        except Exception as ex:
+            print (Exception,":",ex)
+
+        #更新数据位置
+        SecretData_A[(update_index+i,0,1)]=SecretData_A[(update_index+i,0,1)]+1
 
 
 def CSZL_SecretDataTest():
 
     global SecretData_A
-    global SecretData_B
+    #global SecretData_B
 
     #np.set_printoptions(threshold=np.inf)
 
-    np.set_printoptions(precision=2,suppress=True,threshold=100)
-    print(SecretData_A)
+    #np.set_printoptions(precision=2,suppress=True,threshold=100)
+    #print(SecretData_A)
 
 
 
@@ -879,7 +926,7 @@ def CSZL_SecretDataTest():
 def CSZL_SecretDataSave():
 
     global SecretData_A
-    global SecretData_B
+    #global SecretData_B
     
 
     cwd = os.getcwd()
@@ -889,8 +936,8 @@ def CSZL_SecretDataSave():
     txtFileA = cwd + '\\data\\secret\\secretA'+now+'.npy'
     np.save(txtFileA, SecretData_A)
 
-    txtFileB = cwd + '\\data\\secret\\secretB'+now+'.npy'
-    np.save(txtFileB, SecretData_B)
+    #txtFileB = cwd + '\\data\\secret\\secretB'+now+'.npy'
+    #np.save(txtFileB, SecretData_B)
 
 
 

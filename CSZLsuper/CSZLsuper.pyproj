@@ -31,7 +31,6 @@
     <Content Include="data\History_data.npy" />
     <Content Include="data\listtest.txt" />
     <Content Include="log\PARTWrongMessage.txt" />
-    <Content Include="data\zmctestb.npy" />
     <Content Include="output\z_saveinfo.txt" />
   </ItemGroup>
   <ItemGroup>
