@@ -656,7 +656,7 @@ def CSZL_ExitCheck():
 
 def CSZL_ValueCal(StockResult):
 
-    cur_plus=StockResult['s_plus']
+    #cur_plus=StockResult['s_plus']
     cur_price=StockResult['s_now']
     cur_high=StockResult['s_high']
     cur_mktcap=StockResult['s_mktcap']
@@ -672,8 +672,8 @@ def CSZL_ValueCal(StockResult):
     if ((cur_high-cur_price)/cur_price)>0.01:
         LastValue-=2
 
-    if (cur_plus>=3) and (cur_plus<6):
-        LastValue+=cur_plus
+    if (StockResult['s_plus']>=3) and (StockResult['s_plus']<6):
+        LastValue+=StockResult['s_plus']
 
     if (cur_mktcap<500000):
         LastValue+=2
