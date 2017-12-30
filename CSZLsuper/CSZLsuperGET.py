@@ -139,7 +139,7 @@ def CSZL_superinit():
     #初始化typedef s_high
     z_useful_stock_type=np.dtype(([('s_key', int), ('s_code', 'S6'), ('s_plus', float),('s_now', float),
     ('s_last', float),('s_high', float),('s_low', float),
-    ('s_reserve5', float),('s_s2', float),('s_s3', float),('s_s4', float),('s_s5', float),
+    ('s_stflag', float),('s_s2', float),('s_s3', float),('s_s4', float),('s_s5', float),
     ('s_b1', float),('s_b2', float),('s_b3', float),('s_b4', float),('s_b5', float),
     ('s_vol', float),('s_wholecap', float),('s_mktcap', float),('s_10Value', float),
     ('s_InFastUpdataList', int),('s_counter', int),('s_useful', int),('s_zValue', float),
@@ -196,6 +196,7 @@ def CSZL_superinit():
 
     buff_dr_result=pd.read_csv(txtFile,encoding= 'gbk')
 
+    #print(buff_dr_result)
 
     for i in range(len(buff_dr_result['code'])):
         z_temp_nplist = z_init_nplist.copy()
@@ -205,8 +206,18 @@ def CSZL_superinit():
         z_temp_nplist['s_mktcap']=buff_dr_result['mktcap'][i]
         z_temp_nplist['s_per']=buff_dr_result['per'][i]
         z_temp_nplist['s_pb']=buff_dr_result['pb'][i]
-        z_temp_nplist['s_turnoverratio']=buff_dr_result['turnoverratio'][i]      
-        
+        z_temp_nplist['s_turnoverratio']=buff_dr_result['turnoverratio'][i]
+        z_temp_nplist['s_Cname']=buff_dr_result['name'][i].encode("utf-8")
+
+        #判断是否是st
+        zzz=str(z_temp_nplist['s_Cname'][0],"utf-8")    
+        if(zzz[1]=='T'):
+            z_temp_nplist['s_stflag']=1
+        elif(zzz[1]=='S'):
+            z_temp_nplist['s_stflag']=2
+        else:
+            z_temp_nplist['s_stflag']=0                 
+
         g_all_result=np.concatenate((g_all_result,z_temp_nplist),axis=0)
 
 
@@ -391,16 +402,21 @@ def CSZL_superAnalysePARTroutine():
         
                 for i in range(all_list_max-1):
                     #第一个版本做涨幅大于3但是小于6的
+
+                    '''
                     cur_plus=buff_all_result[i+1]['s_plus']
-                    cur_status=g_all_info[i+1]['s_InFastUpdataList']
                     cur_price=buff_all_result[i+1]['s_now']
                     cur_high=buff_all_result[i+1]['s_high']
                     cur_mktcap=buff_all_result[i+1]['s_mktcap']
                     cur_10Value=buff_all_result[i+1]['s_10Value']
+                    '''
 
                     #g_all_info[i+1]['s_zValue']=CSZL_ValueCal(g_all_info[i+1])
                     #cur_plus=g_all_info[i+1]['s_zValue']
-                    buff_all_result[i+1]['s_zValue']=CSZL_ValueCal(cur_price,cur_high,cur_plus,cur_mktcap,cur_10Value)
+                    #buff_all_result[i+1]['s_zValue']=CSZL_ValueCal(cur_price,cur_high,cur_plus,cur_mktcap,cur_10Value,zzztest)
+                    buff_all_result[i+1]['s_zValue']=CSZL_ValueCal(buff_all_result[i+1])
+
+                    cur_status=g_all_info[i+1]['s_InFastUpdataList']
 
                     if buff_all_result[i+1]['s_zValue']>4.5 :
 
@@ -512,9 +528,9 @@ def CSZL_superINFOupdate():
 
             if INFO_part_routine==1:
                 print ("PARTroutine : Runing")
-                print("NO1:%s with score %d \n"%(str(g_part_result[1]['s_Cname'],"utf-8"),g_part_result[1]['s_zValue']))
-                print("NO2:%s with score %d \n"%(str(g_part_result[2]['s_Cname'],"utf-8"),g_part_result[2]['s_zValue']))
-                print("NO3:%s with score %d \n"%(str(g_part_result[3]['s_Cname'],"utf-8"),g_part_result[3]['s_zValue']))
+                print("NO1:%s with score %f \n"%(str(g_part_result[1]['s_Cname'],"utf-8"),g_part_result[1]['s_zValue']))
+                print("NO2:%s with score %f \n"%(str(g_part_result[2]['s_Cname'],"utf-8"),g_part_result[2]['s_zValue']))
+                print("NO3:%s with score %f \n"%(str(g_part_result[3]['s_Cname'],"utf-8"),g_part_result[3]['s_zValue']))
             elif INFO_part_routine==(-1):
                 print ("PARTroutine : Wrong")
             else:
@@ -638,8 +654,18 @@ def CSZL_ExitCheck():
     else:
         return False   
 
-def CSZL_ValueCal(cur_price,cur_high,cur_plus,cur_mktcap,cur_10Value):
+def CSZL_ValueCal(StockResult):
+
+    cur_plus=StockResult['s_plus']
+    cur_price=StockResult['s_now']
+    cur_high=StockResult['s_high']
+    cur_mktcap=StockResult['s_mktcap']
+    cur_10Value=StockResult['s_10Value']
+
+
     LastValue=0
+
+
     if(cur_price==0):
         return LastValue
 
@@ -652,7 +678,7 @@ def CSZL_ValueCal(cur_price,cur_high,cur_plus,cur_mktcap,cur_10Value):
     if (cur_mktcap<500000):
         LastValue+=2
     elif(cur_mktcap<1000000):
-        LastValue+=3
+        LastValue+=cur_mktcap/500000*3
     elif(cur_mktcap<2000000):
         LastValue+=1
     elif(cur_mktcap<5000000):
@@ -664,6 +690,9 @@ def CSZL_ValueCal(cur_price,cur_high,cur_plus,cur_mktcap,cur_10Value):
         LastValue+=0.5  
     elif(cur_mktcap<0):
         LastValue-=0.5  
+
+    if(StockResult['s_stflag']!=0):
+        LastValue-=4
 
     return LastValue
 
@@ -866,45 +895,47 @@ def CSZL_SecretDataUpdate(tushare_result,date_max,update_index=1):
             return
 
         try:
-            if(tushare_result['b1_p'][i]==""or tushare_result['a1_p'][i]==""or tushare_result['b1_v'][i]==""or tushare_result['a1_v'][i]==""):
-                continue
+
+            
+            #z2=update_index+i
 
             #更新时间记录
-            
-            z2=update_index+i
-            #if(z2==176):
-                #print(tushare_result['b1_v'][i])
-
             SecretData_A[(update_index+i,CurIndex,0)]=str(CurHour*100+CurMinute)
 
             #更新数据
-            SecretData_A[(update_index+i,CurIndex,1)]=tushare_result['b1_v'][i]
-            SecretData_A[(update_index+i,CurIndex,2)]=tushare_result['b1_p'][i]
-            SecretData_A[(update_index+i,CurIndex,3)]=tushare_result['b2_v'][i]
-            SecretData_A[(update_index+i,CurIndex,4)]=tushare_result['b2_p'][i]
-            SecretData_A[(update_index+i,CurIndex,5)]=tushare_result['b3_v'][i]
-            SecretData_A[(update_index+i,CurIndex,6)]=tushare_result['b3_p'][i]
-            SecretData_A[(update_index+i,CurIndex,7)]=tushare_result['b4_v'][i]
-            SecretData_A[(update_index+i,CurIndex,8)]=tushare_result['b4_p'][i]
-            SecretData_A[(update_index+i,CurIndex,9)]=tushare_result['b5_v'][i]
-            SecretData_A[(update_index+i,CurIndex,10)]=tushare_result['b5_p'][i]
+            SecretData_A[(update_index+i,CurIndex,1)]=CSZL_AvailableJudge(tushare_result['b1_v'][i])
+            SecretData_A[(update_index+i,CurIndex,2)]=CSZL_AvailableJudge(tushare_result['b1_p'][i])
+            SecretData_A[(update_index+i,CurIndex,3)]=CSZL_AvailableJudge(tushare_result['b2_v'][i])
+            SecretData_A[(update_index+i,CurIndex,4)]=CSZL_AvailableJudge(tushare_result['b2_p'][i])
+            SecretData_A[(update_index+i,CurIndex,5)]=CSZL_AvailableJudge(tushare_result['b3_v'][i])
+            SecretData_A[(update_index+i,CurIndex,6)]=CSZL_AvailableJudge(tushare_result['b3_p'][i])
+            SecretData_A[(update_index+i,CurIndex,7)]=CSZL_AvailableJudge(tushare_result['b4_v'][i])
+            SecretData_A[(update_index+i,CurIndex,8)]=CSZL_AvailableJudge(tushare_result['b4_p'][i])
+            SecretData_A[(update_index+i,CurIndex,9)]=CSZL_AvailableJudge(tushare_result['b5_v'][i])
+            SecretData_A[(update_index+i,CurIndex,10)]=CSZL_AvailableJudge(tushare_result['b5_p'][i])
 
-            SecretData_A[(update_index+i,CurIndex,11)]=tushare_result['a1_v'][i]
-            SecretData_A[(update_index+i,CurIndex,12)]=tushare_result['a1_p'][i]
-            SecretData_A[(update_index+i,CurIndex,13)]=tushare_result['a2_v'][i]
-            SecretData_A[(update_index+i,CurIndex,14)]=tushare_result['a2_p'][i]
-            SecretData_A[(update_index+i,CurIndex,15)]=tushare_result['a3_v'][i]
-            SecretData_A[(update_index+i,CurIndex,16)]=tushare_result['a3_p'][i]
-            SecretData_A[(update_index+i,CurIndex,17)]=tushare_result['a4_v'][i]
-            SecretData_A[(update_index+i,CurIndex,18)]=tushare_result['a4_p'][i]
-            SecretData_A[(update_index+i,CurIndex,19)]=tushare_result['a5_v'][i]
-            SecretData_A[(update_index+i,CurIndex,20)]=tushare_result['a5_p'][i]
+            SecretData_A[(update_index+i,CurIndex,11)]=CSZL_AvailableJudge(tushare_result['a1_v'][i])
+            SecretData_A[(update_index+i,CurIndex,12)]=CSZL_AvailableJudge(tushare_result['a1_p'][i])
+            SecretData_A[(update_index+i,CurIndex,13)]=CSZL_AvailableJudge(tushare_result['a2_v'][i])
+            SecretData_A[(update_index+i,CurIndex,14)]=CSZL_AvailableJudge(tushare_result['a2_p'][i])
+            SecretData_A[(update_index+i,CurIndex,15)]=CSZL_AvailableJudge(tushare_result['a3_v'][i])
+            SecretData_A[(update_index+i,CurIndex,16)]=CSZL_AvailableJudge(tushare_result['a3_p'][i])
+            SecretData_A[(update_index+i,CurIndex,17)]=CSZL_AvailableJudge(tushare_result['a4_v'][i])
+            SecretData_A[(update_index+i,CurIndex,18)]=CSZL_AvailableJudge(tushare_result['a4_p'][i])
+            SecretData_A[(update_index+i,CurIndex,19)]=CSZL_AvailableJudge(tushare_result['a5_v'][i])
+            SecretData_A[(update_index+i,CurIndex,20)]=CSZL_AvailableJudge(tushare_result['a5_p'][i])
 
         except Exception as ex:
             print (Exception,":",ex)
 
         #更新数据位置
         SecretData_A[(update_index+i,0,1)]=SecretData_A[(update_index+i,0,1)]+1
+
+def CSZL_AvailableJudge(zzz):
+    if(zzz==""):
+        return (-1)
+
+    return zzz
 
 
 def CSZL_SecretDataTest():
