@@ -264,7 +264,10 @@ def CSZL_superGETAllroutine():
     while g_exit_flag:
         
         if(CSZL_ExitCheck()):
+            #保存普通数据
             CSZL_DataOutput()
+            #保存重要数据
+            CSZL_SecretDataSave()
             g_exit_flag=False
         if (CSZL_AvailableCheck()):
 
@@ -472,7 +475,6 @@ def CSZL_superAnalysePARTroutine():
 
                 #正确信息打印
                 INFO_part_routine=1
-                #print ("PARTroutine SUCCESS at : %s \n" % ( time.ctime(time.time())))
 
 
             #如果出错
@@ -527,10 +529,13 @@ def CSZL_superINFOupdate():
             print("更新队列：%d个\n"%(g_list_update_index))
 
             if INFO_part_routine==1:
+
+                cur_long=np.alen(g_part_result)
+
                 print ("PARTroutine : Runing")
-                print("NO1:%s with score %f \n"%(str(g_part_result[1]['s_Cname'],"utf-8"),g_part_result[1]['s_zValue']))
-                print("NO2:%s with score %f \n"%(str(g_part_result[2]['s_Cname'],"utf-8"),g_part_result[2]['s_zValue']))
-                print("NO3:%s with score %f \n"%(str(g_part_result[3]['s_Cname'],"utf-8"),g_part_result[3]['s_zValue']))
+                print("NO1:%s with score %f \n"%(str(g_part_result[cur_long-1]['s_Cname'],"utf-8"),g_part_result[cur_long-1]['s_zValue']))
+                print("NO2:%s with score %f \n"%(str(g_part_result[cur_long-2]['s_Cname'],"utf-8"),g_part_result[cur_long-1]['s_zValue']))
+                print("NO3:%s with score %f \n"%(str(g_part_result[cur_long-3]['s_Cname'],"utf-8"),g_part_result[cur_long-1]['s_zValue']))
             elif INFO_part_routine==(-1):
                 print ("PARTroutine : Wrong")
             else:
