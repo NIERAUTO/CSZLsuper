@@ -239,7 +239,7 @@ def CSZL_superinit():
 
     CSZL_SecretDataCreate()
 
-    CSZL_SecretDataTest()
+    #CSZL_SecretDataTest()
 
 
 def CSZL_superGETAllroutine():
@@ -867,7 +867,7 @@ def CSZL_SecretDataCreate():
             temp=str(g_all_result[z]['s_code'],"utf-8")
             #print(temp)
             SecretData_A[(z,0,0)]=temp
-
+            SecretData_A[(z,0,1)]=1
 
 
         except Exception as ex:
@@ -945,7 +945,19 @@ def CSZL_AvailableJudge(zzz):
 
 def CSZL_SecretDataTest():
 
-    global SecretData_A
+    #global SecretData_A
+
+    cwd = os.getcwd()
+    now=datetime.datetime.now()
+    now=now.strftime('%Y%m%d')
+
+    txtFileA = cwd + '\\data\\secret\\secretA'+now+'.npy' 
+    testdata=np.load(txtFileA)
+
+    print(testdata)
+
+    for i in range(len(testdata)):
+        print(testdata[(i,100,2)])
     #global SecretData_B
 
     #np.set_printoptions(threshold=np.inf)

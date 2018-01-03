@@ -41,6 +41,8 @@ CSZL_threads.append(t_AnalysePARTroutine)
 if __name__ == '__main__':
 
 
+    CSZLsuperGET.CSZL_SecretDataTest()
+
     #初始化选项
     getinput=int(input("是否初始化列表数据:1表示初始化 2表示不初始化\n"))
     if(getinput==1):
