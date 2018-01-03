@@ -26,12 +26,11 @@
     <Compile Include="CSZLsuper.py" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="data\today_all_data.csv" />
     <Content Include="log\AllWrongMessage.txt" />
     <Content Include="log\HistoryWrongMessage.txt" />
     <Content Include="data\History_data.npy" />
-    <Content Include="data\listtest.txt" />
     <Content Include="log\PARTWrongMessage.txt" />
-    <Content Include="output\z_saveinfo.txt" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="log\" />

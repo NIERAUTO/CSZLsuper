@@ -867,6 +867,7 @@ def CSZL_SecretDataCreate():
             temp=str(g_all_result[z]['s_code'],"utf-8")
             #print(temp)
             SecretData_A[(z,0,0)]=temp
+            #index初始化
             SecretData_A[(z,0,1)]=1
 
 
@@ -897,7 +898,7 @@ def CSZL_SecretDataUpdate(tushare_result,date_max,update_index=1):
         CurIndex=int(SecretData_A[(update_index+i,0,1)])
         #超范围检测
         if CurIndex>269:
-            return
+            continue
 
         try:
 
@@ -906,7 +907,7 @@ def CSZL_SecretDataUpdate(tushare_result,date_max,update_index=1):
 
             #更新时间记录
             SecretData_A[(update_index+i,CurIndex,0)]=str(CurHour*100+CurMinute)
-
+            test=CSZL_AvailableJudge(tushare_result['b1_v'][i])
             #更新数据
             SecretData_A[(update_index+i,CurIndex,1)]=CSZL_AvailableJudge(tushare_result['b1_v'][i])
             SecretData_A[(update_index+i,CurIndex,2)]=CSZL_AvailableJudge(tushare_result['b1_p'][i])
@@ -930,11 +931,13 @@ def CSZL_SecretDataUpdate(tushare_result,date_max,update_index=1):
             SecretData_A[(update_index+i,CurIndex,19)]=CSZL_AvailableJudge(tushare_result['a5_v'][i])
             SecretData_A[(update_index+i,CurIndex,20)]=CSZL_AvailableJudge(tushare_result['a5_p'][i])
 
+            #更新数据位置
+            SecretData_A[(update_index+i,0,1)]=SecretData_A[(update_index+i,0,1)]+1
+
         except Exception as ex:
             print (Exception,":",ex)
 
-        #更新数据位置
-        SecretData_A[(update_index+i,0,1)]=SecretData_A[(update_index+i,0,1)]+1
+
 
 def CSZL_AvailableJudge(zzz):
     if(zzz==""):
@@ -956,8 +959,13 @@ def CSZL_SecretDataTest():
 
     print(testdata)
 
-    for i in range(len(testdata)):
-        print(testdata[(i,100,2)])
+    for i in range(100):
+        for iii in range(10):
+            for ii in range(21):            
+                print(testdata[(i,iii,ii)])
+
+        print("\n")
+            #print("\n")
     #global SecretData_B
 
     #np.set_printoptions(threshold=np.inf)
