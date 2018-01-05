@@ -144,7 +144,7 @@ def CSZL_superinit():
     ('s_vol', float),('s_wholecap', float),('s_mktcap', float),('s_10Value', float),
     ('s_InFastUpdataList', int),('s_counter', int),('s_useful', int),('s_zValue', float),
     ('s_UpdateHour', int),('s_UpdateMinute', int),('s_ReachedHour', int),('s_ReachedMinute', int),
-    ('s_ReachedFlag', int),('s_ReachedPrice', float),('s_Buy', int),('s_Cname', 'S20'),
+    ('s_ReachedFlag', int),('s_ReachedPrice', float),('s_Buy', int),('s_Cname', 'S40'),
     ('s_per', float),('s_pb', float),('s_turnoverratio', float),('s_reserve1', float),
     ('s_reserve2', float),('s_reserve3', float),('s_reserve4', float)
     ]))
@@ -296,7 +296,7 @@ def CSZL_superGETAllroutine():
                 CSZL_superTypeChange(buff_result,buff_dr_result,update_cur,g_list_update_index,update_counter)
                 
                 #隐藏信息更新
-                CSZL_SecretDataUpdate(buff_dr_result,update_cur,g_list_update_index)
+                #CSZL_SecretDataUpdate(buff_dr_result,update_cur,g_list_update_index)
 
                 #数据指针更新
                 g_list_update_index+=update_cur
@@ -432,7 +432,7 @@ def CSZL_superAnalysePARTroutine():
 
                 #temp222=np.delete(buff_part_result,[1,3],axis=0)
 
-                np.set_printoptions(precision=2,suppress=True)
+                #np.set_printoptions(precision=2,suppress=True)
 
         
                 #将结果排序
@@ -583,7 +583,7 @@ def CSZL_superTypeChange(z_type_result,tushare_result,date_max,update_index=1,s_
         z_type_result[update_index+i]['s_now']=tushare_result['price'][i]
         z_type_result[update_index+i]['s_high']=tushare_result['high'][i]
         z_type_result[update_index+i]['s_low']=tushare_result['low'][i]
-        
+        #这里有bug似乎
         z_type_result[update_index+i]['s_Cname']=tushare_result['name'][i].encode("utf-8") 
 
         '''
@@ -946,7 +946,7 @@ def CSZL_AvailableJudge(zzz):
     return zzz
 
 
-def CSZL_SecretDataTest():
+def CSZL_SecretDataAnalyse():
 
     #global SecretData_A
 
@@ -959,12 +959,16 @@ def CSZL_SecretDataTest():
 
     print(testdata)
 
-    for i in range(100):
-        for iii in range(10):
-            for ii in range(21):            
-                print(testdata[(i,iii,ii)])
+    for i in range(3000):
+        print()
+        if(testdata[(i,0,0)]==300409):
 
-        print("\n")
+            for iii in range(100):
+                for ii in range(21):
+                    testprint=float(testdata[(i,iii,ii)])
+                    print("%5.2f " % testprint,end="")
+                print("\n")
+            print("\n")
             #print("\n")
     #global SecretData_B
 
