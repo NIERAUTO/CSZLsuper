@@ -45,11 +45,8 @@ if __name__ == '__main__':
 
     #初始化选项
     getinput=int(input("是否初始化列表数据:1表示初始化 2表示不初始化\n"))
-    if(getinput==1):
-        CSZLsuperGET.CSZL_DataCreate()
 
-    #初始化变量等
-    CSZLsuperGET.CSZL_superinit()
+    CSZLsuperGET.CSZL_superinit(getinput)
 
     #初始化历史数据
     getinput=int(input("是否初始化历史总数据:1表示初始化 2表示不初始化\n"))
@@ -73,11 +70,11 @@ if __name__ == '__main__':
         getinput=int(input("是否退出:1表示退出 2表示读取信息\n"))
         if(getinput==1):
             #先让别的线程都退出
-            CSZLsuperGET.EXIT()
+            CSZLsuperGET.Z_EXIT()
             time.sleep(10)
 
             #再保存信息
-            CSZLsuperGET.CSZL_DataOutput()
+            CSZLsuperGET.CSZL_CurDataOutput()
 
             break
 

@@ -27,14 +27,11 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="data\today_all_data.csv" />
-    <Content Include="log\AllWrongMessage.txt" />
-    <Content Include="log\HistoryWrongMessage.txt" />
     <Content Include="data\History_data.npy" />
-    <Content Include="log\PARTWrongMessage.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="log\" />
     <Folder Include="data\" />
+    <Folder Include="log\" />
     <Folder Include="output\" />
   </ItemGroup>
   <PropertyGroup>
