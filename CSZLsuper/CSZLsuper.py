@@ -40,25 +40,18 @@ CSZL_threads.append(t_AnalysePARTroutine)
 
 if __name__ == '__main__':
 
-
+    #重要数据分析
     #CSZLsuperGET.CSZL_SecretDataAnalyse()
 
-    #初始化选项
-    getinput=int(input("是否初始化列表数据:1表示初始化 2表示不初始化\n"))
 
-    CSZLsuperGET.CSZL_superinit(getinput)
-
-    #初始化历史数据
-    getinput=int(input("是否初始化历史总数据:1表示初始化 2表示不初始化\n"))
-    if(getinput==1):
-        CSZLsuperGET.CSZL_HistoryDataSave()
+    #总列表初始化
+    CSZLsuperGET.CSZL_superinit()
 
 
-
-    #读取10日数据
+    #历史数据分析(初始化)
     CSZLsuperGET.CSZL_HistoryDataAnalysis()
-    #初始化线程定义
 
+    #初始化线程定义
     for t in CSZL_threads:
         t.setDaemon(True)
         t.start()

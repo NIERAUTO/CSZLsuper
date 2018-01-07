@@ -147,8 +147,8 @@ def CSZL_superINFOupdate():
 
                 print ("PARTroutine : Runing")
                 print("NO1:%s with score %f \n"%(str(g_part_result[cur_long-1]['s_Cname'],"utf-8"),g_part_result[cur_long-1]['s_zValue']))
-                print("NO2:%s with score %f \n"%(str(g_part_result[cur_long-2]['s_Cname'],"utf-8"),g_part_result[cur_long-1]['s_zValue']))
-                print("NO3:%s with score %f \n"%(str(g_part_result[cur_long-3]['s_Cname'],"utf-8"),g_part_result[cur_long-1]['s_zValue']))
+                print("NO2:%s with score %f \n"%(str(g_part_result[cur_long-2]['s_Cname'],"utf-8"),g_part_result[cur_long-2]['s_zValue']))
+                print("NO3:%s with score %f \n"%(str(g_part_result[cur_long-3]['s_Cname'],"utf-8"),g_part_result[cur_long-3]['s_zValue']))
             elif INFO_part_routine==(-1):
                 print ("PARTroutine : Wrong")
             else:
@@ -174,7 +174,7 @@ def CSZL_superINFOupdate():
         cur_counter+=1
     '''
 
-def CSZL_superinit(Initflag):
+def CSZL_superinit():
 
     global g_all_result
     global g_part_result
@@ -183,7 +183,10 @@ def CSZL_superinit(Initflag):
     global g_all_info
     global z_init_nplist
 
-    if(Initflag==1):
+
+    #初始化选项
+    getinput=int(input("是否初始化列表数据:1表示初始化 2表示不初始化\n"))
+    if(getinput==1):
         CurDatalistCreate()
 
 
@@ -332,7 +335,7 @@ def CurDatalistCreate():
         
             i=i+1
     '''
-    #CSZL_SecretDataTest()
+
 
 def CSZL_superGETAllroutine():
  
@@ -456,8 +459,8 @@ def CSZL_superAnalysePARTroutine():
     #如果退出flag被置就退出
     while g_exit_flag:
         
-        if (CSZL_TimeCheck() and update_start):
-        #if (CSZL_AvailableCheck() ):
+        #if (CSZL_TimeCheck() and update_start):
+        if (CSZL_TimeCheck() ):
             try:
                 #先吧原part_list的数据拿过来
                 buff_part_result=g_part_result.copy()
@@ -495,15 +498,7 @@ def CSZL_superAnalysePARTroutine():
                 #从all_list中查找满足条件且不在part_list中的数据
         
                 for i in range(all_list_max-1):
-                    #第一个版本做涨幅大于3但是小于6的
 
-                    '''
-                    cur_plus=buff_all_result[i+1]['s_plus']
-                    cur_price=buff_all_result[i+1]['s_now']
-                    cur_high=buff_all_result[i+1]['s_high']
-                    cur_mktcap=buff_all_result[i+1]['s_mktcap']
-                    cur_10Value=buff_all_result[i+1]['s_10Value']
-                    '''
 
                     #g_all_info[i+1]['s_zValue']=CSZL_ValueCal(g_all_info[i+1])
                     #cur_plus=g_all_info[i+1]['s_zValue']
@@ -523,7 +518,7 @@ def CSZL_superAnalysePARTroutine():
 
                 #temp222=np.delete(buff_part_result,[1,3],axis=0)
 
-                #np.set_printoptions(precision=2,suppress=True)
+
 
         
                 #将结果排序
@@ -531,19 +526,19 @@ def CSZL_superAnalysePARTroutine():
 
                 cur_long=np.alen(buff_part_result)
 
-                #第二次筛选
+                #第二次筛选，筛选前20名踢出后超过20名的
                 if cur_long >21:
                     for i in range(cur_long-21):
+                        #超过20个的一个找到
                         cur_key=buff_hightolow[1]['s_key']
+                        #从列表中删掉
                         g_all_info[cur_key]['s_InFastUpdataList']=2
                         buff_hightolow=np.delete(buff_hightolow,1,axis=0)
 
-
+                    #保证列表最大为21
                     cur_long=21
 
-                for i in range(cur_long-1):
-                    if i==0:
-                        continue
+                for i in range(1,cur_long):
 
                     cur_key=buff_hightolow[i]['s_key']
 
@@ -557,7 +552,7 @@ def CSZL_superAnalysePARTroutine():
 
                         #g_all_info[cur_key]['s_Buy']=???
 
-
+                #np.set_printoptions(precision=2,suppress=True)
                 #print(buff_hightolow)
  
 
@@ -732,7 +727,40 @@ def CSZL_ExitCheck():
 
 
 #@CSZL_log
-def CSZL_HistoryDataSave():
+def CSZL_HistoryDataAnalysis():
+    """
+    历史数据分析
+    """
+
+    #初始化历史数据
+    getinput=int(input("是否初始化历史总数据:1表示初始化 2表示不初始化\n"))
+
+    if(getinput==1):
+        HistoryDataInit()
+
+
+    global g_all_info
+
+    cwd = os.getcwd()
+    txtFile1 = cwd + '\\data\\'+'History_data.npy'   
+    HistoryLoaded=np.load(txtFile1)
+
+    #对应的列表第4个第3项数据，第8天的(倒数第二天)
+    
+    for z in range(len(g_all_result)):
+        try:
+            value=0
+            for x in range(50):
+                if HistoryLoaded[(z,1,x)]!=0:
+                    value+=((HistoryLoaded[(z,3,x)]-HistoryLoaded[(z,1,x)])/HistoryLoaded[(z,1,x)])
+                
+            value=value/50
+            g_all_info[z]['s_10Value']=value
+            
+
+        except Exception as ex:
+            print (Exception,":",ex)
+def HistoryDataInit():
     """
     历史数据保存
     """
@@ -811,34 +839,6 @@ def CSZL_HistoryDataSave():
         cwd = os.getcwd()
         txtFile = cwd + '\\data\\'+'History_data.npy'
         np.save(txtFile, HistoryData10)
-
-def CSZL_HistoryDataAnalysis():
-    """
-    历史数据分析
-    """
-
-    global g_all_info
-
-    cwd = os.getcwd()
-    txtFile1 = cwd + '\\data\\'+'History_data.npy'   
-    HistoryLoaded=np.load(txtFile1)
-
-    #对应的列表第4个第3项数据，第8天的(倒数第二天)
-    
-    for z in range(len(g_all_result)):
-        try:
-            value=0
-            for x in range(50):
-                if HistoryLoaded[(z,1,x)]!=0:
-                    value+=((HistoryLoaded[(z,3,x)]-HistoryLoaded[(z,1,x)])/HistoryLoaded[(z,1,x)])
-                
-            value=value/50
-            g_all_info[z]['s_10Value']=value
-            
-
-        except Exception as ex:
-            print (Exception,":",ex)
-
 
 def CSZL_SecretDataInit():
     """
