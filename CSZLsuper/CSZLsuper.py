@@ -3,7 +3,7 @@
 #import win32api
 import tushare as ts
 import threading
-from tkinter import *
+#from tkinter import *
 #import hashlib
 import pandas as pd
 from pandas import DataFrame

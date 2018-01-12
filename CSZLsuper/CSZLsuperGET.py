@@ -9,7 +9,7 @@ import random
 import tushare as ts
 import pandas as pd
 
-import sys
+#import sys
 import math
 import os
 import numpy as np
@@ -23,7 +23,6 @@ g_all_info=[]
 
 SecretData_A=[]
 
-#SecretData_B=[]
 
 g_list_update_index=0   #全局更新数据位置
 g_exit_flag=True
@@ -268,7 +267,7 @@ def CSZL_superinit():
         zzz=str(z_temp_nplist['s_Cname'][0],"utf-8")    
         if(zzz[1]=='T'):
             z_temp_nplist['s_stflag']=1
-        elif(zzz[1]=='S'):
+        elif(zzz[1]=='S'or zzz[1]=='*'):
             z_temp_nplist['s_stflag']=2
         else:
             z_temp_nplist['s_stflag']=0                 
@@ -282,8 +281,8 @@ def CSZL_superinit():
     #print(g_all_result) 用于测试
 
     #======初始化重点观察的数据 g_part_list======#
+
     #使用空元素初始化g_part_list(np型的)
-    #g_part_result = np.array(z_stock_empty_value, dtype=z_useful_stock_type)  
     g_part_result = z_init_nplist.copy()      
 
     #======初始化线程计数======#
@@ -292,7 +291,9 @@ def CSZL_superinit():
     #======初始化线程退出flag g_exit_flag======#
     g_exit_flag=True
 
+    #======初始化重要数据======#
     CSZL_SecretDataInit()
+
 def CurDatalistCreate():
     """
     初始化当前更新列表
@@ -305,8 +306,6 @@ def CurDatalistCreate():
     txtFile = cwd + '\\data\\'+'today_all_data.csv'
     buff_dr_result.to_csv(txtFile)
 
-
-    #buff_dr_result=pd.read_csv('E:\\vs2015\\CSZLsuper\\CSZLsuper\\test1.csv',encoding= 'gbk')
 
     '''
     #UNDEFINE1226
@@ -391,7 +390,7 @@ def CSZL_superGETAllroutine():
                 CSZL_TypeChange(buff_result,buff_dr_result,update_cur,g_list_update_index,update_counter)
                 
                 #隐藏信息更新
-                #CSZL_SecretDataUpdate(buff_dr_result,update_cur,g_list_update_index)
+                CSZL_SecretDataUpdate(buff_dr_result,update_cur,g_list_update_index)
 
                 #数据指针更新
                 g_list_update_index+=update_cur
@@ -415,20 +414,19 @@ def CSZL_superGETAllroutine():
                 #===成功信息更新===
 
                 INFO_all_routine=1
-                #print ("Allroutine SUCCESS at : %s \n" % ( time.ctime(time.time())))
             
 
             except Exception as ex:
                 INFO_all_routine=-1                
                 wrongmessage="Allroutine FAIL at : %s \n" % ( time.ctime(time.time()))
-                #print (wrongmessage)
+
                 wrongEx=str(ex)
                 Z_LOG_SAVE('AllWrongMessage.txt',wrongmessage+wrongEx)
                 print (Exception,":",ex)
 
         else:
             INFO_all_routine=0
-            #print ('Waiting......\n')
+
 
         sleeptime=random.randint(50,99)
         time.sleep(sleeptime/200)        
@@ -453,14 +451,12 @@ def CSZL_superAnalysePARTroutine():
     #part最多观察数量为20
     PART_LIST_MAX=20
     
-    #用于保持excel
-    #DataSaveCounter=0
 
     #如果退出flag被置就退出
     while g_exit_flag:
         
-        #if (CSZL_TimeCheck() and update_start):
-        if (CSZL_TimeCheck() ):
+        if (CSZL_TimeCheck() and update_start):
+        #if (CSZL_TimeCheck() ):
             try:
                 #先吧原part_list的数据拿过来
                 buff_part_result=g_part_result.copy()
@@ -495,16 +491,11 @@ def CSZL_superAnalysePARTroutine():
                 #得到all_list的长度
                 all_list_max=np.alen(buff_all_result)
 
-                #从all_list中查找满足条件且不在part_list中的数据
-        
+                #从all_list中查找满足条件且不在part_list中的数据      
                 for i in range(all_list_max-1):
-
-
-                    #g_all_info[i+1]['s_zValue']=CSZL_ValueCal(g_all_info[i+1])
-                    #cur_plus=g_all_info[i+1]['s_zValue']
-                    #buff_all_result[i+1]['s_zValue']=CSZL_ValueCal(cur_price,cur_high,cur_plus,cur_mktcap,cur_10Value,zzztest)
+                    #计算当前值
                     buff_all_result[i+1]['s_zValue']=CSZL_ValueCal(buff_all_result[i+1])
-
+                    
                     cur_status=g_all_info[i+1]['s_InFastUpdataList']
 
                     if buff_all_result[i+1]['s_zValue']>4.5 :
@@ -595,12 +586,14 @@ def CSZL_ValueCal(StockResult):
 
     if(cur_price==0):
         return LastValue
-
+    
     if ((cur_high-cur_price)/cur_price)>0.01:
         LastValue-=2
 
+
     if (StockResult['s_plus']>=3) and (StockResult['s_plus']<6):
         LastValue+=StockResult['s_plus']
+    
 
     if (cur_mktcap<500000):
         LastValue+=2
@@ -702,9 +695,9 @@ def CSZL_TimeCheck():
 
     caltemp=CurHour*100+CurMinute
 
-    return True
+    #return True
 
-    if (caltemp>=920 and caltemp<=1135) or (caltemp>=1300 and caltemp<=1505):
+    if (caltemp>=916 and caltemp<=1135) or (caltemp>=1300 and caltemp<=1505):
         return True
     else:
         return False        
