@@ -14,6 +14,7 @@ import math
 import os
 import numpy as np
 import functools
+import math
 
 
 z_init_nplist=[]
@@ -145,9 +146,13 @@ def CSZL_superINFOupdate():
                 cur_long=np.alen(g_part_result)
 
                 print ("PARTroutine : Runing")
-                print("NO1:%s with score %f \n"%(str(g_part_result[cur_long-1]['s_Cname'],"utf-8"),g_part_result[cur_long-1]['s_zValue']))
-                print("NO2:%s with score %f \n"%(str(g_part_result[cur_long-2]['s_Cname'],"utf-8"),g_part_result[cur_long-2]['s_zValue']))
-                print("NO3:%s with score %f \n"%(str(g_part_result[cur_long-3]['s_Cname'],"utf-8"),g_part_result[cur_long-3]['s_zValue']))
+                #print("NO1:%s with score %f \n"%(str(g_part_result[cur_long-1]['s_Cname'],"utf-8"),g_part_result[cur_long-1]['s_zValue']))
+                #print("NO2:%s with score %f \n"%(str(g_part_result[cur_long-2]['s_Cname'],"utf-8"),g_part_result[cur_long-2]['s_zValue']))
+                #print("NO3:%s with score %f \n"%(str(g_part_result[cur_long-3]['s_Cname'],"utf-8"),g_part_result[cur_long-3]['s_zValue']))
+
+                for i in range(20):
+                    print("NO%d:%s with score %f \n"%(i+1,str(g_part_result[cur_long-1-i]['s_Cname'],"utf-8"),g_part_result[cur_long-1-i]['s_zValue']))
+
             elif INFO_part_routine==(-1):
                 print ("PARTroutine : Wrong")
             else:
@@ -388,7 +393,7 @@ def CSZL_superGETAllroutine():
   
                 #将tushare的信息转换为我的格式
                 CSZL_TypeChange(buff_result,buff_dr_result,update_cur,g_list_update_index,update_counter)
-                
+                CSZL_INFOUpdate(g_all_info,update_cur,g_list_update_index)
                 #隐藏信息更新
                 CSZL_SecretDataUpdate(buff_dr_result,update_cur,g_list_update_index)
 
@@ -485,6 +490,12 @@ def CSZL_superAnalysePARTroutine():
                     #将tushare的信息转换为我的格式
                     CSZL_TypeChange(buff_part_result,buff_dr_result,part_list_cur-1,update_index=1)
 
+                    #重新计算value
+                    for i in range(part_list_cur-1):
+                        #temp=str(buff_part_result[1+i]['s_code']).zfill(6)
+                        buff_part_result[i+1]['s_zValue']=CSZL_ValueCal(buff_part_result[i+1],g_all_info[i+1])
+
+
                 #再吧新的all_list的数据拿过来
                 buff_all_result=g_all_result.copy()
 
@@ -494,20 +505,18 @@ def CSZL_superAnalysePARTroutine():
                 #从all_list中查找满足条件且不在part_list中的数据      
                 for i in range(all_list_max-1):
                     #计算当前值
-                    buff_all_result[i+1]['s_zValue']=CSZL_ValueCal(buff_all_result[i+1])
+                    buff_all_result[i+1]['s_zValue']=CSZL_ValueCal(buff_all_result[i+1],g_all_info[i+1])
                     
                     cur_status=g_all_info[i+1]['s_InFastUpdataList']
 
-                    if buff_all_result[i+1]['s_zValue']>4.5 :
+                    #如果这个票的状态不是1
+                    if (cur_status!=1 and cur_status!=3): 
+                        if buff_all_result[i+1]['s_zValue']>4.5 :
 
-                        #如果这个票的状态不是1
-                        if (cur_status!=1):        
-                            #g_all_info[i+1]['s_InFastUpdataList']=1
+
                             z_temp_nplist = z_init_nplist.copy()
                             z_temp_nplist[0]=buff_all_result[i+1].copy()
                             buff_part_result=np.concatenate((buff_part_result,z_temp_nplist),axis=0)
-
-                #temp222=np.delete(buff_part_result,[1,3],axis=0)
 
 
 
@@ -522,8 +531,13 @@ def CSZL_superAnalysePARTroutine():
                     for i in range(cur_long-21):
                         #超过20个的一个找到
                         cur_key=buff_hightolow[1]['s_key']
+                        #如果这个原来是状态1那么就变成状态3，否则是状态2
+                        if(g_all_info[cur_key]['s_InFastUpdataList']==1):
+                            g_all_info[cur_key]['s_InFastUpdataList']=3
+                        else:
+                            g_all_info[cur_key]['s_InFastUpdataList']=2
+
                         #从列表中删掉
-                        g_all_info[cur_key]['s_InFastUpdataList']=2
                         buff_hightolow=np.delete(buff_hightolow,1,axis=0)
 
                     #保证列表最大为21
@@ -572,13 +586,13 @@ def CSZL_superAnalysePARTroutine():
     
     return 0
 
-def CSZL_ValueCal(StockResult):
+def CSZL_ValueCal(StockResult,StockINFO):
 
     #cur_plus=StockResult['s_plus']
     cur_price=StockResult['s_now']
     cur_high=StockResult['s_high']
     cur_mktcap=StockResult['s_mktcap']
-    cur_10Value=StockResult['s_10Value']
+    cur_10Value=StockINFO['s_10Value']
 
 
     LastValue=0
@@ -591,20 +605,20 @@ def CSZL_ValueCal(StockResult):
         LastValue-=2
 
 
-    if (StockResult['s_plus']>=3) and (StockResult['s_plus']<6):
+    if (StockResult['s_plus']>=2.5) and (StockResult['s_plus']<6):
         LastValue+=StockResult['s_plus']
     
 
-    if (cur_mktcap<500000):
-        LastValue+=2
-    elif(cur_mktcap<1000000):
-        LastValue+=cur_mktcap/500000*3
-    elif(cur_mktcap<2000000):
-        LastValue+=1
-    elif(cur_mktcap<5000000):
-        LastValue-=1
-    elif(cur_mktcap>=5000000):
-        LastValue-=2
+        if (cur_mktcap<500000):
+            LastValue+=2
+        elif(cur_mktcap<1000000):
+            LastValue+=cur_mktcap/500000*3
+        elif(cur_mktcap<2000000):
+            LastValue+=1
+        elif(cur_mktcap<5000000):
+            LastValue-=1
+        elif(cur_mktcap>=5000000):
+            LastValue-=2
 
     if(cur_10Value>0):
         LastValue+=0.5  
@@ -640,24 +654,6 @@ def CSZL_TypeChange(z_type_result,tushare_result,date_max,update_index=1,s_count
             #这里有bug似乎
             z_type_result[update_index+i]['s_Cname']=tushare_result['name'][i].encode("utf-8") 
 
-            '''
-            d=tushare_result['b1_v'][i]
-            if(d!=""):
-                z_type_result[update_index+i]['s_b1']=float(d)
-            #z_type_result[update_index+i]['s_b1']=float(tushare_result['b1_v'][i])
-        
-            z_type_result[update_index+i]['s_b1']=float(tushare_result['b1_v'][i])
-            z_type_result[update_index+i]['s_s1']=float(tushare_result['a1_v'][i])
-            z_type_result[update_index+i]['s_b2']=float(tushare_result['b2_v'][i])
-            z_type_result[update_index+i]['s_s2']=float(tushare_result['a2_v'][i])
-            z_type_result[update_index+i]['s_b3']=float(tushare_result['b3_v'][i])
-            z_type_result[update_index+i]['s_s3']=float(tushare_result['a3_v'][i])
-            z_type_result[update_index+i]['s_b4']=float(tushare_result['b4_v'][i])
-            z_type_result[update_index+i]['s_s4']=float(tushare_result['a4_v'][i])
-            z_type_result[update_index+i]['s_b5']=float(tushare_result['b5_v'][i])
-            z_type_result[update_index+i]['s_s5']=float(tushare_result['a5_v'][i])
-            '''
-
 
             z_type_result[update_index+i]['s_UpdateHour']=CurHour
             z_type_result[update_index+i]['s_UpdateMinute']=CurMinute
@@ -678,6 +674,27 @@ def CSZL_TypeChange(z_type_result,tushare_result,date_max,update_index=1,s_count
                 z_type_result[update_index+i]['s_plus']=0
             else:
                 z_type_result[update_index+i]['s_plus']=((z_type_result[update_index+i]['s_now']-z_type_result[update_index+i]['s_last'])/z_type_result[update_index+i]['s_last'])*100
+
+
+
+
+        except Exception as ex:
+            #print (Exception,":",ex)
+            wrongEx=str(ex)
+            Z_LOG_SAVE('TypeChangeWrongMessage.txt',wrongmessage+wrongEx)
+
+def CSZL_INFOUpdate(z_info_source,date_max,update_index=1):
+    """
+    将被剔除的3状态成员，变回普通成员
+    
+
+    """
+
+    for i in range(date_max):
+        try:
+            if(z_info_source[update_index+i]['s_InFastUpdataList']==3):
+                z_info_source[update_index+i]['s_InFastUpdataList']=0
+
 
         except Exception as ex:
             #print (Exception,":",ex)
@@ -743,11 +760,18 @@ def CSZL_HistoryDataAnalysis():
     for z in range(len(g_all_result)):
         try:
             value=0
+            div=1
             for x in range(50):
                 if HistoryLoaded[(z,1,x)]!=0:
-                    value+=((HistoryLoaded[(z,3,x)]-HistoryLoaded[(z,1,x)])/HistoryLoaded[(z,1,x)])
-                
-            value=value/50
+
+                    value+=abs((HistoryLoaded[(z,3,x)]-HistoryLoaded[(z,1,x)])/HistoryLoaded[(z,1,x)])
+                    div+=1
+            value=value/div
+            '''
+            if(value<0.01):
+                tes2t=2
+            test=g_all_info[z]['s_code']
+            '''
             g_all_info[z]['s_10Value']=value
             
 
