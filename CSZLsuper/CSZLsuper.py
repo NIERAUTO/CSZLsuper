@@ -42,7 +42,7 @@ if __name__ == '__main__':
 
     #重要数据分析
     #CSZLsuperGET.CSZL_SecretDataAnalyse()
-
+    #CSZLsuperGET.CSZL_Train.CSZL_TrainMain()
 
     #总列表初始化
     CSZLsuperGET.CSZL_superinit()
@@ -50,6 +50,8 @@ if __name__ == '__main__':
 
     #历史数据分析(初始化)
     CSZLsuperGET.CSZL_HistoryDataAnalysis()
+
+
 
     #初始化线程定义
     for t in CSZL_threads:

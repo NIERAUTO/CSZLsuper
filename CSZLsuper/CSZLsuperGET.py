@@ -434,7 +434,7 @@ def CSZL_superGETAllroutine():
 
 
         sleeptime=random.randint(50,99)
-        time.sleep(sleeptime/200)        
+        time.sleep(sleeptime/200)      
 
 def CSZL_superAnalysePARTroutine():
 
@@ -1056,6 +1056,70 @@ def DataSave(All_info):
 
             tempall2=str(temp7)+'\t'+str(temp8)+'\t'+str(temp9)+'\t'+str(temp10)
             fobj.write(tempall+tempall2+'\n')
+
+class CSZL_Train:
+    def CSZL_TrainMain():
+    
+        z222=ts.get_k_data('600000',start='2018-01-16', end='2018-01-17',ktype='5')
+
+        print(z222)
+        #print(z222.date[1])
+        #print(z222.open.data[1])
+
+        data=CSZL_Train.CSZL_TrainInputInit()
+        CSZL_TrainFilter(data)
+
+
+    def CSZL_TrainInputInit():
+        global SecretData_A
+
+        #code time mkt availableflag
+
+        InputData=np.zeros((4000,4),dtype=float)
+
+        while(True):
+            z=random.randint(0,3999)
+
+        for i in range(x):
+            print(i)
+            for ii in range(y):
+                print(i)
+
+        return InputData
+    
+    def CSZL_TrainFilter(InputData):
+        x=InputData.shape[0]
+        y=InputData.shape[1]
+
+        for i in range(x):
+            print(i)
+            for ii in range(y):
+                print(i)
+
+        aa=1
+
+    def CSZL_TrainResult(InputData):
+        x=InputData.shape[0]
+        y=InputData.shape[1]
+
+        for i in range(x):
+            print(i)
+            for ii in range(y):
+                print(i)
+
+        aa=1
+
+    def CSZL_TrainBack(InputData):
+        x=InputData.shape[0]
+        y=InputData.shape[1]
+
+        for i in range(x):
+            print(i)
+            for ii in range(y):
+                print(i)
+
+        aa=1
+
 
 #暂时未使用功能
 
