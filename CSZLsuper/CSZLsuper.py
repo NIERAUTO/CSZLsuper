@@ -42,11 +42,14 @@ if __name__ == '__main__':
 
     #重要数据分析
     #CSZLsuperGET.CSZL_SecretDataAnalyse()
-    #CSZLsuperGET.CSZL_Train.CSZL_TrainMain()
+
+
+
 
     #总列表初始化
     CSZLsuperGET.CSZL_superinit()
 
+    CSZLsuperGET.CSZL_TrainMain()
 
     #历史数据分析(初始化)
     CSZLsuperGET.CSZL_HistoryDataAnalysis()

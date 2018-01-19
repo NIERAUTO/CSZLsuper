@@ -189,10 +189,11 @@ def CSZL_superinit():
 
 
     #初始化选项
+    '''
     getinput=int(input("是否初始化列表数据:1表示初始化 2表示不初始化\n"))
     if(getinput==1):
         CurDatalistCreate()
-
+    '''
 
     #======初始化总得到的数据 g_all_result======#
     #初始化typedef s_high
@@ -1057,68 +1058,145 @@ def DataSave(All_info):
             tempall2=str(temp7)+'\t'+str(temp8)+'\t'+str(temp9)+'\t'+str(temp10)
             fobj.write(tempall+tempall2+'\n')
 
-class CSZL_Train:
-    def CSZL_TrainMain():
+
+  
+
+def CSZL_TrainMain():
+
+    z222=ts.get_k_data('300018',start='2018-01-06',end='2018-01-16',ktype='D')
+
     
-        z222=ts.get_k_data('600000',start='2018-01-16', end='2018-01-17',ktype='5')
+    ddd=len(z222.date)
 
-        print(z222)
-        #print(z222.date[1])
-        #print(z222.open.data[1])
+    print(z222.close.data[0])
+    print(z222.date[2])
 
-        data=CSZL_Train.CSZL_TrainInputInit()
-        CSZL_TrainFilter(data)
+    for singledata in z222.open:
+        print(singledata)
+
+    #print(z222.date)
+
+    if(z222.empty==True):
+        print(z222.date[0])
+    else:
+        print(z222.date[1])       
+
+    #print(z222.date[1])
+    #print(z222.close.data[0])
+
+    data=CSZL_TrainInputInit()
+    CSZL_TrainFilter(data)
 
 
-    def CSZL_TrainInputInit():
-        global SecretData_A
+def CSZL_TrainInputInit():
 
-        #code time mkt availableflag
+    '''
+    cwd = os.getcwd()
+    now=datetime.datetime.now()
+    now=now.strftime('%Y%m%d')
+    now='20180117'
 
-        InputData=np.zeros((4000,4),dtype=float)
+    txtFileA = cwd + '\\data\\secret\\secretA'+now+'.npy'
+    Dataload=np.load(txtFileA)
+    '''
 
-        while(True):
-            z=random.randint(0,3999)
+    TimeA='2018-01-17'
+    TimeB=TimeA
 
-        for i in range(x):
+    #code time mkt availableflag value
+    InputData=np.zeros((4000,5),dtype=float)
+
+    available_train_data=0
+    for z in range(len(g_all_result)):
+        try:
+                
+            temp=str(g_all_result[z]['s_code'],"utf-8")
+            
+            z222=ts.get_k_data(temp,start=TimeA,end=TimeB,ktype='D')
+
+            if(z222.empty==True):
+                continue
+
+            available_train_data+=1
+            InputData[(z,3)]=1                
+
+            InputData[(z,4)]=z222.close.data[0]
+            
+            print(z)
+
+        except Exception as ex:
+            sleeptime=random.randint(50,99)
+            time.sleep(sleeptime/100)
+
+    for z in range(len(g_all_result)):
+        try:
+            if(InputData[(z,3)]==1):
+                continue
+                
+            temp=str(g_all_result[z]['s_code'],"utf-8")
+            
+            z222=ts.get_k_data(temp,start=TimeA,end=TimeB,ktype='D')
+
+            if(z222.empty==True):
+                continue
+
+            available_train_data+=1
+            InputData[(z,3)]=1                
+
+            InputData[(z,4)]=z222.close.data[0]
+            
+            print(z)
+
+        except Exception as ex:
+            sleeptime=random.randint(50,99)
+            time.sleep(sleeptime/100)
+    print(InputData)
+
+
+
+
+
+    while(True):
+        z=random.randint(0,3999)
+
+    for i in range(x):
+        print(i)
+        for ii in range(y):
             print(i)
-            for ii in range(y):
-                print(i)
 
-        return InputData
+    return InputData
     
-    def CSZL_TrainFilter(InputData):
-        x=InputData.shape[0]
-        y=InputData.shape[1]
+def CSZL_TrainFilter(InputData):
+    x=InputData.shape[0]
+    y=InputData.shape[1]
 
-        for i in range(x):
+    for i in range(x):
+        print(i)
+        for ii in range(y):
             print(i)
-            for ii in range(y):
-                print(i)
 
-        aa=1
 
-    def CSZL_TrainResult(InputData):
-        x=InputData.shape[0]
-        y=InputData.shape[1]
+def CSZL_TrainResult(InputData):
+    x=InputData.shape[0]
+    y=InputData.shape[1]
 
-        for i in range(x):
+    for i in range(x):
+        print(i)
+        for ii in range(y):
             print(i)
-            for ii in range(y):
-                print(i)
 
-        aa=1
+    aa=1
 
-    def CSZL_TrainBack(InputData):
-        x=InputData.shape[0]
-        y=InputData.shape[1]
+def CSZL_TrainBack(self):
+    x=InputData.shape[0]
+    y=InputData.shape[1]
 
-        for i in range(x):
+    for i in range(x):
+        print(i)
+        for ii in range(y):
             print(i)
-            for ii in range(y):
-                print(i)
 
-        aa=1
+    aa=1
 
 
 #暂时未使用功能
