@@ -682,7 +682,7 @@ def CSZL_TypeChange(z_type_result,tushare_result,date_max,update_index=1,s_count
         except Exception as ex:
             #print (Exception,":",ex)
             wrongEx=str(ex)
-            Z_LOG_SAVE('TypeChangeWrongMessage.txt',wrongmessage+wrongEx)
+            #Z_LOG_SAVE('TypeChangeWrongMessage.txt',wrongmessage+wrongEx)
 
 def CSZL_INFOUpdate(z_info_source,date_max,update_index=1):
     """
@@ -700,7 +700,7 @@ def CSZL_INFOUpdate(z_info_source,date_max,update_index=1):
         except Exception as ex:
             #print (Exception,":",ex)
             wrongEx=str(ex)
-            Z_LOG_SAVE('TypeChangeWrongMessage.txt',wrongmessage+wrongEx)
+            #Z_LOG_SAVE('TypeChangeWrongMessage.txt',wrongmessage+wrongEx)
 
 def CSZL_TimeCheck():
     global CurHour
@@ -753,8 +753,9 @@ def CSZL_HistoryDataAnalysis():
     global g_all_info
 
     cwd = os.getcwd()
-    txtFile1 = cwd + '\\data\\'+'History_data.npy'   
+    txtFile1 = cwd + '\\data\\'+'History_data.npy'
     HistoryLoaded=np.load(txtFile1)
+
 
     #对应的列表第4个第3项数据，第8天的(倒数第二天)
     
@@ -789,7 +790,7 @@ def HistoryDataInit():
     otherStyleTime = NDayAgo.strftime("%Y-%m-%d")
     otherStyleTime2 = DayNow.strftime("%Y-%m-%d")
 
-    HistoryData10=np.zeros((4000,6,50),dtype=float)
+    HistoryData10=np.zeros((4000,7,50),dtype=float)
     '''
     zempty=ts.get_k_data("888888",start=otherStyleTime, end=otherStyleTime2)
     z222=ts.get_k_data("888888",start=otherStyleTime, end=otherStyleTime2)
@@ -824,8 +825,9 @@ def HistoryDataInit():
 
 
     if True:
+        all=len(g_all_result)
 
-        for z in range(len(g_all_result)):
+        for z in range(all):
             try:
                 
                 temp=str(g_all_result[z]['s_code'],"utf-8")
@@ -836,7 +838,20 @@ def HistoryDataInit():
                 z333=z222.tail(50)
                 datamax=len(z333)
 
-                for x in range(0,datamax):
+                x=0
+
+                if(z333.empty==True):
+                    continue
+
+                #for x in range(0,datamax):
+                for singledatezz in z333.date:
+
+
+                    changedate=time.strptime(singledatezz,"%Y-%m-%d")
+                    changedate2=time.strftime("%Y%m%d",changedate)
+                    changedate3=int(changedate2)
+                    HistoryData10[(z,6,x)]=changedate3
+
                     #zmctest1105[(z,0,x)]=g_all_result[z]['s_code']
                     HistoryData10[(z,1,x)]=z333.open.data[datamax-x-1]
                     HistoryData10[(z,2,x)]=z333.high.data[datamax-x-1]
@@ -844,6 +859,9 @@ def HistoryDataInit():
                     HistoryData10[(z,4,x)]=z333.low.data[datamax-x-1]
                     HistoryData10[(z,5,x)]=z333.volume.data[datamax-x-1]
                     #zmctest1105[(z,5,x)]=z333.amount.data[x]
+                    x+=1
+                print(z/all)
+                print("\n")
 
             except Exception as ex:
                 sleeptime=random.randint(50,99)
@@ -955,7 +973,7 @@ def CSZL_SecretDataUpdate(tushare_result,date_max,update_index=1):
         except Exception as ex:
             #print (Exception,":",ex)
             wrongEx=str(ex)
-            Z_LOG_SAVE('SecretDataUpdateWrongMessage.txt',wrongmessage+wrongEx)
+            #Z_LOG_SAVE('SecretDataUpdateWrongMessage.txt',wrongmessage+wrongEx)
 
 def CSZL_SecretDataAnalyse():
 
@@ -1063,10 +1081,25 @@ def DataSave(All_info):
 
 def CSZL_TrainMain():
 
-    z222=ts.get_k_data('300018',start='2018-01-06',end='2018-01-16',ktype='D')
+    '''
+    z222=ts.get_k_data('300018',start='2017-12-06',end='2018-01-16',ktype='D')
 
+    z333=z222.tail(50)
     
-    ddd=len(z222.date)
+    #ddd=len(z222.date)
+
+    #print(z333)
+    #print(z333.date[0])
+    zzzzz=len(z333)
+    x=0
+    for singledate in z333.date:
+
+        print(singledate)
+        changedate=time.strptime(singledate,"%Y-%m-%d")
+        changedate2=time.strftime("%Y%m%d",changedate)
+        changedate3=int(changedate2)
+
+        x+=1
 
     print(z222.close.data[0])
     print(z222.date[2])
@@ -1080,6 +1113,8 @@ def CSZL_TrainMain():
         print(z222.date[0])
     else:
         print(z222.date[1])       
+
+    '''
 
     #print(z222.date[1])
     #print(z222.close.data[0])
@@ -1098,7 +1133,24 @@ def CSZL_TrainInputInit():
 
     txtFileA = cwd + '\\data\\secret\\secretA'+now+'.npy'
     Dataload=np.load(txtFileA)
+
+
+    for i in range(3000):
+        print()
+        if(testdata[(i,0,0)]==300409):
+
+            for iii in range(100):
+                for ii in range(21):
+                    testprint=float(testdata[(i,iii,ii)])
+                    print("%5.2f " % testprint,end="")
+                print("\n")
+            print("\n")
     '''
+
+    cwd = os.getcwd()
+    txtFile1 = cwd + '\\data\\'+'History_data.npy'
+    HistoryLoaded=np.load(txtFile1)
+
 
     TimeA='2018-01-17'
     TimeB=TimeA
