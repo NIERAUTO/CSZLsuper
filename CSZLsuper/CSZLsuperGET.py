@@ -715,7 +715,7 @@ def CSZL_TimeCheck():
 
     #return True
 
-    if (caltemp>=916 and caltemp<=1135) or (caltemp>=1300 and caltemp<=1505):
+    if (caltemp>=915 and caltemp<=1132) or (caltemp>=1300 and caltemp<=1503):
         return True
     else:
         return False        
@@ -1081,40 +1081,7 @@ def DataSave(All_info):
 
 def CSZL_TrainMain():
 
-    '''
-    z222=ts.get_k_data('300018',start='2017-12-06',end='2018-01-16',ktype='D')
 
-    z333=z222.tail(50)
-    
-    #ddd=len(z222.date)
-
-    #print(z333)
-    #print(z333.date[0])
-    zzzzz=len(z333)
-    x=0
-    for singledate in z333.date:
-
-        print(singledate)
-        changedate=time.strptime(singledate,"%Y-%m-%d")
-        changedate2=time.strftime("%Y%m%d",changedate)
-        changedate3=int(changedate2)
-
-        x+=1
-
-    print(z222.close.data[0])
-    print(z222.date[2])
-
-    for singledata in z222.open:
-        print(singledata)
-
-    #print(z222.date)
-
-    if(z222.empty==True):
-        print(z222.date[0])
-    else:
-        print(z222.date[1])       
-
-    '''
 
     #print(z222.date[1])
     #print(z222.close.data[0])
@@ -1125,86 +1092,67 @@ def CSZL_TrainMain():
 
 def CSZL_TrainInputInit():
 
-    '''
+    #
     cwd = os.getcwd()
-    now=datetime.datetime.now()
-    now=now.strftime('%Y%m%d')
-    now='20180117'
+    file_dir = cwd + '\\data\\secret'
+    
+    for root, dirs,files in os.walk(file_dir):
+        L=[]
+        for file in files:  
+            if os.path.splitext(file)[1] == '.npy':  
+                L.append(os.path.join(root, file)) 
 
-    txtFileA = cwd + '\\data\\secret\\secretA'+now+'.npy'
-    Dataload=np.load(txtFileA)
+    for z_file in L:
+        SecLoaded=np.load(z_file)
+        
+        '''
+        cwd = os.getcwd()
+        txtFile1 = cwd + '\\data\\secret\\'+'secretA20180119.npy'
+        SecLoaded=np.load(txtFile1)
+        '''
 
+        x=SecLoaded.shape[0]
+        y=SecLoaded.shape[1]
+        z=SecLoaded.shape[2]
 
-    for i in range(3000):
-        print()
-        if(testdata[(i,0,0)]==300409):
+        for i in range(x-1):
+            #if SecLoaded[(i,0,0)]==600055:
+            #print("\n")           
+            for ii in range(y):
+                for iii in range(z):
+                    zzz=1
+                    #print("%8.2f " % SecLoaded[(i,ii,iii)],end="")
 
-            for iii in range(100):
-                for ii in range(21):
-                    testprint=float(testdata[(i,iii,ii)])
-                    print("%5.2f " % testprint,end="")
-                print("\n")
-            print("\n")
-    '''
+                #print("\n")
+            #print("\n")
+
+    #从历史数据中读取数据
 
     cwd = os.getcwd()
     txtFile1 = cwd + '\\data\\'+'History_data.npy'
     HistoryLoaded=np.load(txtFile1)
 
+    x=HistoryLoaded.shape[0]
+    y=HistoryLoaded.shape[1]
+    z=HistoryLoaded.shape[2]
 
-    TimeA='2018-01-17'
-    TimeB=TimeA
+    for i in range(x-1):
+        for ii in range(y):
+            for iii in range(10):
+                print("%12.2f " % HistoryLoaded[(i,ii,iii)],end="")
+
+            print("\n")
+        print("\n")
+
+
+
+
 
     #code time mkt availableflag value
     InputData=np.zeros((4000,5),dtype=float)
 
-    available_train_data=0
-    for z in range(len(g_all_result)):
-        try:
-                
-            temp=str(g_all_result[z]['s_code'],"utf-8")
-            
-            z222=ts.get_k_data(temp,start=TimeA,end=TimeB,ktype='D')
 
-            if(z222.empty==True):
-                continue
-
-            available_train_data+=1
-            InputData[(z,3)]=1                
-
-            InputData[(z,4)]=z222.close.data[0]
-            
-            print(z)
-
-        except Exception as ex:
-            sleeptime=random.randint(50,99)
-            time.sleep(sleeptime/100)
-
-    for z in range(len(g_all_result)):
-        try:
-            if(InputData[(z,3)]==1):
-                continue
-                
-            temp=str(g_all_result[z]['s_code'],"utf-8")
-            
-            z222=ts.get_k_data(temp,start=TimeA,end=TimeB,ktype='D')
-
-            if(z222.empty==True):
-                continue
-
-            available_train_data+=1
-            InputData[(z,3)]=1                
-
-            InputData[(z,4)]=z222.close.data[0]
-            
-            print(z)
-
-        except Exception as ex:
-            sleeptime=random.randint(50,99)
-            time.sleep(sleeptime/100)
-    print(InputData)
-
-
+    #从secretdata中读取数据
 
 
 
