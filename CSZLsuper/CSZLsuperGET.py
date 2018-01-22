@@ -1092,7 +1092,60 @@ def CSZL_TrainMain():
 
 def CSZL_TrainInputInit():
 
-    #
+    # 
+    #code mkt time availableflag codemean reserve2 reserve13 reserve14 bid1 result
+    TrainInput=np.zeros((4000,10),dtype=float)
+    
+
+    #从历史数据中读取数据
+
+    cwd = os.getcwd()
+    txtFile1 = cwd + '\\data\\'+'History_data.npy'
+    HistoryLoaded=np.load(txtFile1)
+
+    x=HistoryLoaded.shape[0]    #4000
+    y=HistoryLoaded.shape[1]    #7
+    z=HistoryLoaded.shape[2]    #50
+
+    for i in range(x):
+        #code(index)
+        TrainInput[(i,0)]=HistoryLoaded[(i,0,0)]
+
+        #codemean
+        if HistoryLoaded[(i,0,0)]>0 and HistoryLoaded[(i,0,0)]<300000:
+            TrainInput[(i,4)]=1
+        elif HistoryLoaded[(i,0,0)]>=300000 and HistoryLoaded[(i,0,0)]<600000:
+            TrainInput[(i,4)]=2
+        elif HistoryLoaded[(i,0,0)]>=600000 and HistoryLoaded[(i,0,0)]<603000:
+            TrainInput[(i,4)]=3
+        elif HistoryLoaded[(i,0,0)]>=603000 and HistoryLoaded[(i,0,0)]<999999:
+            TrainInput[(i,4)]=4
+        
+
+            
+        '''
+        for ii in range(y):
+            for iii in range(10):
+                print("%12.2f " % HistoryLoaded[(i,ii,iii)],end="")
+
+            print("\n")
+        print("\n")
+        '''
+
+    TrainInput_test(TrainInput)
+
+    '''
+    for i in range(x-1):
+        for ii in range(y):
+            for iii in range(10):
+                print("%12.2f " % HistoryLoaded[(i,ii,iii)],end="")
+
+            print("\n")
+        print("\n")
+    '''
+
+    #从Secdata中读取文件
+    #获取目录下所有文件
     cwd = os.getcwd()
     file_dir = cwd + '\\data\\secret'
     
@@ -1100,8 +1153,9 @@ def CSZL_TrainInputInit():
         L=[]
         for file in files:  
             if os.path.splitext(file)[1] == '.npy':  
-                L.append(os.path.join(root, file)) 
+                L.append(os.path.join(root, file))
 
+    #遍历所有文件
     for z_file in L:
         SecLoaded=np.load(z_file)
         
@@ -1111,13 +1165,22 @@ def CSZL_TrainInputInit():
         SecLoaded=np.load(txtFile1)
         '''
 
-        x=SecLoaded.shape[0]
-        y=SecLoaded.shape[1]
-        z=SecLoaded.shape[2]
+        x=SecLoaded.shape[0]    #4000
+        y=SecLoaded.shape[1]    #270
+        z=SecLoaded.shape[2]    #21
 
         for i in range(x-1):
             #if SecLoaded[(i,0,0)]==600055:
-            #print("\n")           
+            #print("\n")
+            for ii in range(y):
+                zzz=1
+                #for iii in range(z):
+                    
+
+        '''
+        for i in range(x-1):
+            #if SecLoaded[(i,0,0)]==600055:
+            #print("\n")
             for ii in range(y):
                 for iii in range(z):
                     zzz=1
@@ -1125,34 +1188,13 @@ def CSZL_TrainInputInit():
 
                 #print("\n")
             #print("\n")
-
-    #从历史数据中读取数据
-
-    cwd = os.getcwd()
-    txtFile1 = cwd + '\\data\\'+'History_data.npy'
-    HistoryLoaded=np.load(txtFile1)
-
-    x=HistoryLoaded.shape[0]
-    y=HistoryLoaded.shape[1]
-    z=HistoryLoaded.shape[2]
-
-    for i in range(x-1):
-        for ii in range(y):
-            for iii in range(10):
-                print("%12.2f " % HistoryLoaded[(i,ii,iii)],end="")
-
-            print("\n")
-        print("\n")
-
-
-
-
+        '''
 
     #code time mkt availableflag value
-    InputData=np.zeros((4000,5),dtype=float)
 
 
-    #从secretdata中读取数据
+
+
 
 
 
@@ -1166,6 +1208,16 @@ def CSZL_TrainInputInit():
 
     return InputData
     
+def TrainInput_test(TrainInput):
+    x=TrainInput.shape[0]
+    y=TrainInput.shape[1]
+
+    for i in range(x-1):
+        for ii in range(y):
+            print("%8.2f " % TrainInput[(i,ii)],end="")
+        print("\n")    
+
+
 def CSZL_TrainFilter(InputData):
     x=InputData.shape[0]
     y=InputData.shape[1]
