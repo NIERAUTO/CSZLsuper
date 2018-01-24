@@ -1107,6 +1107,9 @@ def CSZL_TrainInputInit():
     y=HistoryLoaded.shape[1]    #7
     z=HistoryLoaded.shape[2]    #50
 
+
+    Available=0     #有效数据
+
     for i in range(x):
         #code(index)
         TrainInput[(i,0)]=HistoryLoaded[(i,0,0)]
@@ -1121,7 +1124,21 @@ def CSZL_TrainInputInit():
         elif HistoryLoaded[(i,0,0)]>=603000 and HistoryLoaded[(i,0,0)]<999999:
             TrainInput[(i,4)]=4
         
+        target_dateA=20180104
+        target_dateB=20180105
 
+        Close=0
+        for ii in range(z):
+
+            if HistoryLoaded[(i,6,ii)]==target_dateA:
+                #TrainInput[(i,9)]=HistoryLoaded[(i,3,ii)]
+                Close=HistoryLoaded[(i,3,ii)]
+            elif HistoryLoaded[(i,6,ii)]==target_dateB and Close!=0:
+                TrainInput[(i,9)]=((HistoryLoaded[(i,3,ii)]-Close)/Close)*100
+        
+                TrainInput[(i,3)]=1
+                Available+=1
+                break
             
         '''
         for ii in range(y):
@@ -1131,6 +1148,8 @@ def CSZL_TrainInputInit():
             print("\n")
         print("\n")
         '''
+        #print(Available)        
+        #print(i)
 
     TrainInput_test(TrainInput)
 
