@@ -853,11 +853,12 @@ def HistoryDataInit():
                     HistoryData10[(z,6,x)]=changedate3
 
                     #zmctest1105[(z,0,x)]=g_all_result[z]['s_code']
-                    HistoryData10[(z,1,x)]=z333.open.data[datamax-x-1]
-                    HistoryData10[(z,2,x)]=z333.high.data[datamax-x-1]
-                    HistoryData10[(z,3,x)]=z333.close.data[datamax-x-1]
-                    HistoryData10[(z,4,x)]=z333.low.data[datamax-x-1]
-                    HistoryData10[(z,5,x)]=z333.volume.data[datamax-x-1]
+                    #HistoryData10[(z,1,x)]=z333.open.data[datamax-x-1]
+                    HistoryData10[(z,1,x)]=z333.open.data[x]
+                    HistoryData10[(z,2,x)]=z333.high.data[x]
+                    HistoryData10[(z,3,x)]=z333.close.data[x]
+                    HistoryData10[(z,4,x)]=z333.low.data[x]
+                    HistoryData10[(z,5,x)]=z333.volume.data[x]
                     #zmctest1105[(z,5,x)]=z333.amount.data[x]
                     x+=1
                 print(z/all)
@@ -1091,6 +1092,7 @@ def CSZL_TrainMain():
 
 
 def CSZL_TrainInputInit():
+    global g_all_result
 
     # 
     #code mkt time availableflag codemean reserve2 reserve13 reserve14 bid1 result
@@ -1103,42 +1105,71 @@ def CSZL_TrainInputInit():
     txtFile1 = cwd + '\\data\\'+'History_data.npy'
     HistoryLoaded=np.load(txtFile1)
 
-    x=HistoryLoaded.shape[0]    #4000
+    #x=HistoryLoaded.shape[0]    #4000
+
+    x=len(g_all_result)
     y=HistoryLoaded.shape[1]    #7
     z=HistoryLoaded.shape[2]    #50
 
 
     Available=0     #有效数据
+    wrongconter=0
+    counter2=[0,0,0,0]
+
 
     for i in range(x):
-        #code(index)
-        TrainInput[(i,0)]=HistoryLoaded[(i,0,0)]
 
-        #codemean
-        if HistoryLoaded[(i,0,0)]>0 and HistoryLoaded[(i,0,0)]<300000:
-            TrainInput[(i,4)]=1
-        elif HistoryLoaded[(i,0,0)]>=300000 and HistoryLoaded[(i,0,0)]<600000:
-            TrainInput[(i,4)]=2
-        elif HistoryLoaded[(i,0,0)]>=600000 and HistoryLoaded[(i,0,0)]<603000:
-            TrainInput[(i,4)]=3
-        elif HistoryLoaded[(i,0,0)]>=603000 and HistoryLoaded[(i,0,0)]<999999:
-            TrainInput[(i,4)]=4
+        temp=str(g_all_result[i]['s_code'],"utf-8")
+        zzz=float(temp)
+        zzz2=HistoryLoaded[(i,0,0)]
+        if(zzz==zzz2):
+            #code(index)
+            TrainInput[(i,0)]=HistoryLoaded[(i,0,0)]
+
+            #mkt
+            TrainInput[(i,1)]=g_all_result[i]['s_mktcap']
+            if g_all_result[i]['s_mktcap']>0 and g_all_result[i]['s_mktcap']<300000:
+                counter2[0]+=1
+                TrainInput[(i,1)]=1
+            elif g_all_result[i]['s_mktcap']>=300000 and g_all_result[i]['s_mktcap']<1000000:
+                counter2[1]+=1
+                TrainInput[(i,1)]=2
+            elif g_all_result[i]['s_mktcap']>=1000000 and g_all_result[i]['s_mktcap']<3000000:
+                counter2[2]+=1
+                TrainInput[(i,1)]=3
+            elif g_all_result[i]['s_mktcap']>=3000000:
+                counter2[3]+=1
+                TrainInput[(i,1)]=4
+
+            #codemean
+            if HistoryLoaded[(i,0,0)]>0 and HistoryLoaded[(i,0,0)]<300000:
+                TrainInput[(i,4)]=1
+            elif HistoryLoaded[(i,0,0)]>=300000 and HistoryLoaded[(i,0,0)]<600000:
+                TrainInput[(i,4)]=2
+            elif HistoryLoaded[(i,0,0)]>=600000 and HistoryLoaded[(i,0,0)]<603000:
+                TrainInput[(i,4)]=3
+            elif HistoryLoaded[(i,0,0)]>=603000 and HistoryLoaded[(i,0,0)]<999999:
+                TrainInput[(i,4)]=4
         
-        target_dateA=20180104
-        target_dateB=20180105
+            target_dateA=20180104
+            target_dateB=20180105
 
-        Close=0
-        for ii in range(z):
+            Close=0
+            for ii in range(z):
 
-            if HistoryLoaded[(i,6,ii)]==target_dateA:
-                #TrainInput[(i,9)]=HistoryLoaded[(i,3,ii)]
-                Close=HistoryLoaded[(i,3,ii)]
-            elif HistoryLoaded[(i,6,ii)]==target_dateB and Close!=0:
-                TrainInput[(i,9)]=((HistoryLoaded[(i,3,ii)]-Close)/Close)*100
-        
-                TrainInput[(i,3)]=1
-                Available+=1
-                break
+                if HistoryLoaded[(i,6,ii)]==target_dateA:
+                    #TrainInput[(i,9)]=HistoryLoaded[(i,3,ii)]
+                    Close=HistoryLoaded[(i,3,ii)]
+                elif HistoryLoaded[(i,6,ii)]==target_dateB and Close!=0:
+
+                    TrainInput[(i,9)]=((HistoryLoaded[(i,3,ii)]-Close)/Close)*100
+                    #TrainInput[(i,9)]=HistoryLoaded[(i,3,ii)]        
+                    TrainInput[(i,3)]=1
+                    Available+=1
+                    break
+        else:
+            wrongconter+=1
+            continue
             
         '''
         for ii in range(y):
