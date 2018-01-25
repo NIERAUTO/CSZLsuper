@@ -16,6 +16,8 @@ import numpy as np
 import functools
 import math
 
+#正则表达式
+import re
 
 z_init_nplist=[]
 g_all_result=[]
@@ -1088,7 +1090,7 @@ def CSZL_TrainMain():
     #print(z222.close.data[0])
 
     data=CSZL_TrainInputInit()
-    CSZL_TrainFilter(data)
+    CSZL_TrainValueCal(data)
 
 
 def CSZL_TrainInputInit():
@@ -1116,12 +1118,16 @@ def CSZL_TrainInputInit():
     wrongconter=0
     counter2=[0,0,0,0]
 
+    #目标日期
+    target_dateA=20180118
+    target_dateB=20180119
 
     for i in range(x):
 
         temp=str(g_all_result[i]['s_code'],"utf-8")
         zzz=float(temp)
         zzz2=HistoryLoaded[(i,0,0)]
+        #保证相同项
         if(zzz==zzz2):
             #code(index)
             TrainInput[(i,0)]=HistoryLoaded[(i,0,0)]
@@ -1129,16 +1135,16 @@ def CSZL_TrainInputInit():
             #mkt
             TrainInput[(i,1)]=g_all_result[i]['s_mktcap']
             if g_all_result[i]['s_mktcap']>0 and g_all_result[i]['s_mktcap']<300000:
-                counter2[0]+=1
+                #counter2[0]+=1
                 TrainInput[(i,1)]=1
             elif g_all_result[i]['s_mktcap']>=300000 and g_all_result[i]['s_mktcap']<1000000:
-                counter2[1]+=1
+                #counter2[1]+=1
                 TrainInput[(i,1)]=2
             elif g_all_result[i]['s_mktcap']>=1000000 and g_all_result[i]['s_mktcap']<3000000:
-                counter2[2]+=1
+                #counter2[2]+=1
                 TrainInput[(i,1)]=3
             elif g_all_result[i]['s_mktcap']>=3000000:
-                counter2[3]+=1
+                #counter2[3]+=1
                 TrainInput[(i,1)]=4
 
             #codemean
@@ -1151,8 +1157,7 @@ def CSZL_TrainInputInit():
             elif HistoryLoaded[(i,0,0)]>=603000 and HistoryLoaded[(i,0,0)]<999999:
                 TrainInput[(i,4)]=4
         
-            target_dateA=20180104
-            target_dateB=20180105
+
 
             Close=0
             for ii in range(z):
@@ -1182,7 +1187,7 @@ def CSZL_TrainInputInit():
         #print(Available)        
         #print(i)
 
-    TrainInput_test(TrainInput)
+    #TrainInput_test(TrainInput)
 
     '''
     for i in range(x-1):
@@ -1193,70 +1198,87 @@ def CSZL_TrainInputInit():
             print("\n")
         print("\n")
     '''
-
-    #从Secdata中读取文件
-    #获取目录下所有文件
-    cwd = os.getcwd()
-    file_dir = cwd + '\\data\\secret'
-    
-    for root, dirs,files in os.walk(file_dir):
-        L=[]
-        for file in files:  
-            if os.path.splitext(file)[1] == '.npy':  
-                L.append(os.path.join(root, file))
-
-    #遍历所有文件
-    for z_file in L:
-        SecLoaded=np.load(z_file)
-        
-        '''
+    #暂时对不使用sec数据
+    SecUse=True
+    if SecUse:
+        #从Secdata中读取文件
+        #获取目录下所有文件
         cwd = os.getcwd()
-        txtFile1 = cwd + '\\data\\secret\\'+'secretA20180119.npy'
-        SecLoaded=np.load(txtFile1)
-        '''
+        file_dir = cwd + '\\data\\secret'
+    
+        for root, dirs,files in os.walk(file_dir):
+            L=[]
+            for file in files:  
+                if os.path.splitext(file)[1] == '.npy':  
+                    L.append(os.path.join(root, file))
 
-        x=SecLoaded.shape[0]    #4000
-        y=SecLoaded.shape[1]    #270
-        z=SecLoaded.shape[2]    #21
+        #遍历所有文件
+        for z_file in L:
 
-        for i in range(x-1):
-            #if SecLoaded[(i,0,0)]==600055:
-            #print("\n")
-            for ii in range(y):
-                zzz=1
-                #for iii in range(z):
+            #试试我的正则功力
+            nums = re.findall(r"secretA(\d+).",z_file)
+            cur_date=int(nums)
+            if cur_date==target_dateB:
+
+                SecLoaded=np.load(z_file)
+
+                '''
+                cwd = os.getcwd()
+                txtFile1 = cwd + '\\data\\secret\\'+'secretA20180119.npy'
+                SecLoaded=np.load(txtFile1)
+                '''
+
+                x=SecLoaded.shape[0]    #4000
+                y=SecLoaded.shape[1]    #270
+                z=SecLoaded.shape[2]    #21
+
+                for i in range(x):
+                    #if SecLoaded[(i,0,0)]==600055:
+                    #print("\n")
+                    if TrainInput[(i,3)]==1:
+                        for ii in range(y):
+                            zzz=1
+                            #for iii in range(z):
                     
 
-        '''
-        for i in range(x-1):
-            #if SecLoaded[(i,0,0)]==600055:
-            #print("\n")
-            for ii in range(y):
-                for iii in range(z):
-                    zzz=1
-                    #print("%8.2f " % SecLoaded[(i,ii,iii)],end="")
+                '''
+                for i in range(x-1):
+                    #if SecLoaded[(i,0,0)]==600055:
+                    #print("\n")
+                    for ii in range(y):
+                        for iii in range(z):
+                            zzz=1
+                            #print("%8.2f " % SecLoaded[(i,ii,iii)],end="")
 
-                #print("\n")
-            #print("\n")
-        '''
-
-    #code time mkt availableflag value
+                        #print("\n")
+                    #print("\n")
+                '''
 
 
+    #将数据集分为测试组和训练组
+    test_data=int(Available/5)
+    train_data=Available-test_data
+
+    fail=0
+
+    while(test_data>0):
+        randomdata=random.randint(0,3999)
+        if TrainInput[(randomdata,3)]==1:
+            TrainInput[(randomdata,3)]=2
+
+            test_data-=1
+        else:
+            fail+=1
 
 
-
-
-
-    while(True):
-        z=random.randint(0,3999)
-
+    #TrainInput_test(TrainInput)
+    '''
     for i in range(x):
         print(i)
         for ii in range(y):
             print(i)
-
-    return InputData
+    '''
+    return TrainInput
     
 def TrainInput_test(TrainInput):
     x=TrainInput.shape[0]
@@ -1268,14 +1290,21 @@ def TrainInput_test(TrainInput):
         print("\n")    
 
 
-def CSZL_TrainFilter(InputData):
+def CSZL_TrainValueCal(InputData):
     x=InputData.shape[0]
     y=InputData.shape[1]
 
+    finalzzz=0
+    datacal=0
+
     for i in range(x):
-        print(i)
-        for ii in range(y):
-            print(i)
+        if InputData[(i,3)]>0 and InputData[(i,1)]==3:
+            #kkk=InputData[(i,9)]
+            finalzzz+=InputData[(i,9)]
+            datacal+=1
+    finalzzzz=finalzzz/datacal
+
+    return finalzzz
 
 
 def CSZL_TrainResult(InputData):
