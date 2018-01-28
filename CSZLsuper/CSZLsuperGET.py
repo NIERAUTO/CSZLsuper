@@ -1092,7 +1092,7 @@ def CSZL_TrainMain():
     #print(z222)
     #print(z222.close.data[0])
 
-    if False:
+    if True:
 
         TrainDate=CSZL_TrainInit()
 
@@ -1174,7 +1174,7 @@ def CSZL_TrainInputInit(target_dateA,target_dateB):
     global HistoryLoaded
 
     # 
-    #code mkt time availableflag codemean reserve2 reserve3 reserve4 bid1 result
+    #code mkt time availableflag codemean pe reserve3 reserve4 bid1 result
     TrainInput=np.zeros((4000,10),dtype=float)
     
 
@@ -1208,7 +1208,7 @@ def CSZL_TrainInputInit(target_dateA,target_dateB):
             TrainInput[(i,0)]=HistoryLoaded[(i,0,0)]
 
             #mkt
-            TrainInput[(i,1)]=g_all_result[i]['s_mktcap']
+            #TrainInput[(i,1)]=g_all_result[i]['s_mktcap']
             if g_all_result[i]['s_mktcap']>0 and g_all_result[i]['s_mktcap']<300000:
                 #counter2[0]+=1
                 TrainInput[(i,1)]=1
@@ -1231,7 +1231,36 @@ def CSZL_TrainInputInit(target_dateA,target_dateB):
                 TrainInput[(i,4)]=3
             elif HistoryLoaded[(i,0,0)]>=603000 and HistoryLoaded[(i,0,0)]<999999:
                 TrainInput[(i,4)]=4
-        
+            #pe
+
+            TrainInput[(i,5)]=g_all_result[i]['s_per']
+            if g_all_result[i]['s_per']<0 or g_all_result[i]['s_per']>=100:
+                counter2[0]+=1
+                TrainInput[(i,5)]=1
+            elif g_all_result[i]['s_per']>=0 and g_all_result[i]['s_per']<25:
+                counter2[1]+=1
+                TrainInput[(i,5)]=4
+            elif g_all_result[i]['s_per']>=25 and g_all_result[i]['s_per']<45:
+                counter2[2]+=1
+                TrainInput[(i,5)]=3
+            elif g_all_result[i]['s_per']>45 and g_all_result[i]['s_per']<100:
+                counter2[3]+=1
+                TrainInput[(i,5)]=2
+            #pb
+            TrainInput[(i,6)]=g_all_result[i]['s_pb']
+            if g_all_result[i]['s_pb']<0 or g_all_result[i]['s_pb']>=6:
+                #counter2[0]+=1
+                TrainInput[(i,6)]=1
+            elif g_all_result[i]['s_pb']>=0 and g_all_result[i]['s_pb']<2:
+                #counter2[1]+=1
+                TrainInput[(i,6)]=4
+            elif g_all_result[i]['s_pb']>=2 and g_all_result[i]['s_pb']<3.5:
+                #counter2[2]+=1
+                TrainInput[(i,6)]=3
+            elif g_all_result[i]['s_pb']>3.5 and g_all_result[i]['s_pb']<6:
+                #counter2[3]+=1
+                TrainInput[(i,6)]=2
+
 
             #得到最后的结果
             Close=0
@@ -1366,7 +1395,7 @@ def TrainInput_test(TrainInput):
         print("\n")    
 
 
-def CSZL_TrainValueCal(InputData,zmkt=1,zcode=1):
+def CSZL_TrainValueCal(InputData,zmkt=1,zbb=1):
     x=InputData.shape[0]
     y=InputData.shape[1]
 
@@ -1381,7 +1410,7 @@ def CSZL_TrainValueCal(InputData,zmkt=1,zcode=1):
     for i in range(x):
         if InputData[(i,3)]>0 :
 
-            if InputData[(i,1)]==zmkt and InputData[(i,4)]==zcode:
+            if InputData[(i,1)]==zmkt and InputData[(i,5)]==zbb:
                 cur_strategy+=InputData[(i,7)]
                 cur_strategycal+=1
             #kkk=InputData[(i,9)]
