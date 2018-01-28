@@ -49,7 +49,7 @@ if __name__ == '__main__':
     #总列表初始化
     CSZLsuperGET.CSZL_superinit()
 
-    CSZLsuperGET.CSZL_TrainMain()
+    #CSZLsuperGET.CSZL_TrainMain()
 
     #历史数据分析(初始化)
     CSZLsuperGET.CSZL_HistoryDataAnalysis()

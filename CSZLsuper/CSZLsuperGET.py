@@ -1080,32 +1080,110 @@ def DataSave(All_info):
             fobj.write(tempall+tempall2+'\n')
 
 
-  
+HistoryLoaded=[]
+DataRecord=[]  
 
 def CSZL_TrainMain():
+    global DataRecord
+    #z222=ts.get_k_data('600004')
 
 
-
-    #print(z222.date[1])
+    cwd = os.getcwd()
+    #print(z222)
     #print(z222.close.data[0])
 
-    data=CSZL_TrainInputInit()
-    CSZL_TrainValueCal(data)
+    if False:
+
+        TrainDate=CSZL_TrainInit()
 
 
-def CSZL_TrainInputInit():
-    global g_all_result
+        first=TrainDate[0]
+        xx=0
+        for singledate in TrainDate:
+            if(first==singledate):
+                lastdate=first
+                continue
+        
+            #print(singledate)
+            data=CSZL_TrainInputInit(lastdate,singledate)
+        
+            for AA in range(1,5):
+                for BB in range(1,5):
+                    DataRecord[xx,AA-1,BB-1,0]=singledate
+                    DataRecord[xx,AA-1,BB-1,1]=CSZL_TrainValueCal(data,AA,BB)
 
-    # 
-    #code mkt time availableflag codemean reserve2 reserve13 reserve14 bid1 result
-    TrainInput=np.zeros((4000,10),dtype=float)
-    
 
-    #从历史数据中读取数据
+            #上次日期
+            lastdate=singledate
+            xx+=1
+
+        
+        now=datetime.datetime.now()
+        now=now.strftime('%Y%m%d')
+
+        txtFileA = cwd + '\\data\\'+'Train_data.npy'
+        np.save(txtFileA, DataRecord)
+
+
+
+    txtFile1 = cwd + '\\data\\'+'Train_data.npy'
+    DataRecord=np.load(txtFile1)
+
+
+    x=DataRecord.shape[0]    #50
+    y=DataRecord.shape[1]    #4
+    z=DataRecord.shape[2]    #4
+    p=DataRecord.shape[3]    #2
+
+    ztestarray=np.zeros((4,4),dtype=float)
+
+    for i in range(x):
+        for ii in range(y):
+            for iii in range(z):
+                ztestarray[ii,iii]+=DataRecord[i,ii,iii,1]
+                #print("%10d %2d %2d %8.2f " % (DataRecord[i,ii,iii,0], ii+1, iii+1, DataRecord[i,ii,iii,1]),end="")
+            #print("\n")  
+
+    print(ztestarray)
+    zzzzzzz=1
+
+
+def CSZL_TrainInit():
+    global HistoryLoaded
+    global DataRecord
+
+    TrainDate=[]
 
     cwd = os.getcwd()
     txtFile1 = cwd + '\\data\\'+'History_data.npy'
     HistoryLoaded=np.load(txtFile1)
+
+
+    z=HistoryLoaded.shape[2]    #50
+
+    for ii in  range(z):
+        #这里暂时拿603999来作为日期检测的种子，之后会寻找更加合适的方法
+        TrainDate.append(HistoryLoaded[(1,6,ii)])
+
+    #日期 数值1 数值2 结果
+    DataRecord=np.zeros((z,4,4,2),dtype=float)
+    return TrainDate
+
+def CSZL_TrainInputInit(target_dateA,target_dateB):
+    global g_all_result
+    global HistoryLoaded
+
+    # 
+    #code mkt time availableflag codemean reserve2 reserve3 reserve4 bid1 result
+    TrainInput=np.zeros((4000,10),dtype=float)
+    
+
+    #从历史数据中读取数据
+    '''
+    cwd = os.getcwd()
+    txtFile1 = cwd + '\\data\\'+'History_data.npy'
+    HistoryLoaded=np.load(txtFile1)
+    '''
 
     #x=HistoryLoaded.shape[0]    #4000
 
@@ -1118,9 +1196,6 @@ def CSZL_TrainInputInit():
     wrongconter=0
     counter2=[0,0,0,0]
 
-    #目标日期
-    target_dateA=20180118
-    target_dateB=20180119
 
     for i in range(x):
 
@@ -1158,17 +1233,18 @@ def CSZL_TrainInputInit():
                 TrainInput[(i,4)]=4
         
 
-
+            #得到最后的结果
             Close=0
             for ii in range(z):
 
                 if HistoryLoaded[(i,6,ii)]==target_dateA:
                     #TrainInput[(i,9)]=HistoryLoaded[(i,3,ii)]
+                    TrainInput[(i,8)]=HistoryLoaded[(i,3,ii)]
                     Close=HistoryLoaded[(i,3,ii)]
                 elif HistoryLoaded[(i,6,ii)]==target_dateB and Close!=0:
 
-                    TrainInput[(i,9)]=((HistoryLoaded[(i,3,ii)]-Close)/Close)*100
-                    #TrainInput[(i,9)]=HistoryLoaded[(i,3,ii)]        
+                    TrainInput[(i,7)]=((HistoryLoaded[(i,3,ii)]-Close)/Close)*100
+                    TrainInput[(i,9)]=HistoryLoaded[(i,3,ii)]        
                     TrainInput[(i,3)]=1
                     Available+=1
                     break
@@ -1199,7 +1275,7 @@ def CSZL_TrainInputInit():
         print("\n")
     '''
     #暂时对不使用sec数据
-    SecUse=True
+    SecUse=False
     if SecUse:
         #从Secdata中读取文件
         #获取目录下所有文件
@@ -1217,7 +1293,7 @@ def CSZL_TrainInputInit():
 
             #试试我的正则功力
             nums = re.findall(r"secretA(\d+).",z_file)
-            cur_date=int(nums)
+            cur_date=float(nums[0])
             if cur_date==target_dateB:
 
                 SecLoaded=np.load(z_file)
@@ -1290,21 +1366,36 @@ def TrainInput_test(TrainInput):
         print("\n")    
 
 
-def CSZL_TrainValueCal(InputData):
+def CSZL_TrainValueCal(InputData,zmkt=1,zcode=1):
     x=InputData.shape[0]
     y=InputData.shape[1]
 
+    cur_strategy=0
     finalzzz=0
     datacal=0
+    cur_strategycal=0
+
+    #TrainInput_test(InputData)
+
 
     for i in range(x):
-        if InputData[(i,3)]>0 and InputData[(i,1)]==3:
+        if InputData[(i,3)]>0 :
+
+            if InputData[(i,1)]==zmkt and InputData[(i,4)]==zcode:
+                cur_strategy+=InputData[(i,7)]
+                cur_strategycal+=1
             #kkk=InputData[(i,9)]
-            finalzzz+=InputData[(i,9)]
+            finalzzz+=InputData[(i,7)]
             datacal+=1
+
+    if(cur_strategycal==0):
+        return -99
+
+    final_cur_strategy=cur_strategy/cur_strategycal
     finalzzzz=finalzzz/datacal
 
-    return finalzzz
+    test=final_cur_strategy-finalzzzz
+    return (test)
 
 
 def CSZL_TrainResult(InputData):
