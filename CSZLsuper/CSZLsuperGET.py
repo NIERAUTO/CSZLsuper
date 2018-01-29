@@ -1087,8 +1087,16 @@ def CSZL_TrainMain():
     global DataRecord
     #z222=ts.get_k_data('600004')
 
-
     cwd = os.getcwd()
+
+    zzzz=ts.get_report_data(2017,2)
+
+    txtFileB = cwd + '\\data\\'+'Report_data.npy'
+    np.save(txtFileB, zzzz)
+
+    print(zzzz)
+
+
     #print(z222)
     #print(z222.close.data[0])
 
