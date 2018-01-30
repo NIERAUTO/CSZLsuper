@@ -758,6 +758,7 @@ def CSZL_HistoryDataAnalysis():
     txtFile1 = cwd + '\\data\\'+'History_data.npy'
     HistoryLoaded=np.load(txtFile1)
 
+    dates=HistoryLoaded.shape[2]
 
     #对应的列表第4个第3项数据，第8天的(倒数第二天)
     
@@ -765,7 +766,7 @@ def CSZL_HistoryDataAnalysis():
         try:
             value=0
             div=1
-            for x in range(50):
+            for x in range(dates):
                 if HistoryLoaded[(z,1,x)]!=0:
 
                     value+=abs((HistoryLoaded[(z,3,x)]-HistoryLoaded[(z,1,x)])/HistoryLoaded[(z,1,x)])
@@ -785,14 +786,17 @@ def HistoryDataInit():
     """
     历史数据保存
     """
+
+    dates=300
+
     
     DayNow=datetime.datetime.now()
     #这里改时间
-    NDayAgo = (datetime.datetime.now() - datetime.timedelta(days = 100))
+    NDayAgo = (datetime.datetime.now() - datetime.timedelta(days = 500))
     otherStyleTime = NDayAgo.strftime("%Y-%m-%d")
     otherStyleTime2 = DayNow.strftime("%Y-%m-%d")
 
-    HistoryData10=np.zeros((4000,7,50),dtype=float)
+    HistoryData10=np.zeros((4000,7,dates),dtype=float)
     '''
     zempty=ts.get_k_data("888888",start=otherStyleTime, end=otherStyleTime2)
     z222=ts.get_k_data("888888",start=otherStyleTime, end=otherStyleTime2)
@@ -837,7 +841,7 @@ def HistoryDataInit():
                 HistoryData10[(z,0,0)]=temp
                 z222=ts.get_k_data(temp,start=otherStyleTime, end=otherStyleTime2)
 
-                z333=z222.tail(50)
+                z333=z222.tail(dates)
                 datamax=len(z333)
 
                 x=0
@@ -1088,14 +1092,14 @@ def CSZL_TrainMain():
     #z222=ts.get_k_data('600004')
 
     cwd = os.getcwd()
-
+    '''
     zzzz=ts.get_report_data(2017,2)
 
     txtFileB = cwd + '\\data\\'+'Report_data.npy'
     np.save(txtFileB, zzzz)
 
     print(zzzz)
-
+    '''
 
     #print(z222)
     #print(z222.close.data[0])
