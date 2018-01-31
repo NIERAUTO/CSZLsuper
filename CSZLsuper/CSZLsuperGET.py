@@ -1104,9 +1104,11 @@ def CSZL_TrainMain():
     #print(z222)
     #print(z222.close.data[0])
 
+    TrainDate=CSZL_TrainInit()
+
     if True:
 
-        TrainDate=CSZL_TrainInit()
+        
 
 
         first=TrainDate[0]
@@ -1156,6 +1158,11 @@ def CSZL_TrainMain():
                 #print("%10d %2d %2d %8.2f " % (DataRecord[i,ii,iii,0], ii+1, iii+1, DataRecord[i,ii,iii,1]),end="")
             #print("\n")  
 
+    for i in range(4):
+        for ii in range(4):
+            print("%8.2f " % (ztestarray[i,ii]),end="")
+        print("\n") 
+
     print(ztestarray)
     zzzzzzz=1
 
@@ -1170,6 +1177,7 @@ def CSZL_TrainInit():
     txtFile1 = cwd + '\\data\\'+'History_data.npy'
     HistoryLoaded=np.load(txtFile1)
 
+    #HistoryLoaded=HistoryLoaded.tail(50)
 
     z=HistoryLoaded.shape[2]    #50
 
@@ -1186,7 +1194,7 @@ def CSZL_TrainInputInit(target_dateA,target_dateB):
     global HistoryLoaded
 
     # 
-    #code mkt time availableflag codemean pe reserve3 reserve4 bid1 result
+    #code mkt time availableflag codemean pe pb tempresult bid1 sell
     TrainInput=np.zeros((4000,10),dtype=float)
     
 
@@ -1245,7 +1253,7 @@ def CSZL_TrainInputInit(target_dateA,target_dateB):
                 TrainInput[(i,4)]=4
             #pe
 
-            TrainInput[(i,5)]=g_all_result[i]['s_per']
+            #TrainInput[(i,5)]=g_all_result[i]['s_per']
             if g_all_result[i]['s_per']<0 or g_all_result[i]['s_per']>=100:
                 counter2[0]+=1
                 TrainInput[(i,5)]=1
@@ -1259,7 +1267,7 @@ def CSZL_TrainInputInit(target_dateA,target_dateB):
                 counter2[3]+=1
                 TrainInput[(i,5)]=2
             #pb
-            TrainInput[(i,6)]=g_all_result[i]['s_pb']
+            #TrainInput[(i,6)]=g_all_result[i]['s_pb']
             if g_all_result[i]['s_pb']<0 or g_all_result[i]['s_pb']>=6:
                 #counter2[0]+=1
                 TrainInput[(i,6)]=1
@@ -1422,7 +1430,8 @@ def CSZL_TrainValueCal(InputData,zmkt=1,zbb=1):
     for i in range(x):
         if InputData[(i,3)]>0 :
 
-            if InputData[(i,1)]==zmkt and InputData[(i,5)]==zbb:
+            if InputData[(i,1)]==zmkt and InputData[(i,4)]==zbb:
+                #print(InputData[(i,0)])
                 cur_strategy+=InputData[(i,7)]
                 cur_strategycal+=1
             #kkk=InputData[(i,9)]
