@@ -275,7 +275,7 @@ def CSZL_superinit():
         zzz=str(z_temp_nplist['s_Cname'][0],"utf-8")    
         if(zzz[1]=='T'):
             z_temp_nplist['s_stflag']=1
-        elif(zzz[1]=='S'or zzz[1]=='*'):
+        elif(zzz[1]=='S'or zzz[1]=='*'or zzz[0]=='S'):
             z_temp_nplist['s_stflag']=2
         else:
             z_temp_nplist['s_stflag']=0                 
@@ -1282,9 +1282,18 @@ def CSZL_TrainInputInit(target_dateA,target_dateB):
                 TrainInput[(i,6)]=2
 
 
+            '''
+            if HistoryLoaded[(i,1,(z-1))]==0:
+                TrainInput[(i,3)]=-1
+                continue
+            '''
+
+
             #得到最后的结果
             Close=0
             for ii in range(z):
+
+
 
                 if HistoryLoaded[(i,6,ii)]==target_dateA:
                     #TrainInput[(i,9)]=HistoryLoaded[(i,3,ii)]
@@ -1430,14 +1439,14 @@ def CSZL_TrainValueCal(InputData,zmkt=1,zbb=1):
     for i in range(x):
         if InputData[(i,3)]>0 :
 
-            if InputData[(i,1)]==zmkt and InputData[(i,4)]==zbb:
+            if InputData[(i,1)]==zmkt and InputData[(i,5)]==zbb:
                 #print(InputData[(i,0)])
                 cur_strategy+=InputData[(i,7)]
                 cur_strategycal+=1
             #kkk=InputData[(i,9)]
             finalzzz+=InputData[(i,7)]
             datacal+=1
-
+    #print("/n")
     if(cur_strategycal==0):
         return -99
 
