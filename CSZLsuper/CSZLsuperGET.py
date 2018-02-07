@@ -1296,6 +1296,12 @@ def CSZL_TrainInputInit(target_dateA,target_dateB):
 
 
                 if HistoryLoaded[(i,6,ii)]==target_dateA:
+                    
+                    if(HistoryLoaded[(i,3,ii)]==HistoryLoaded[(i,1,ii)]and HistoryLoaded[(i,3,ii)]==HistoryLoaded[(i,2,ii)]):
+                        zzz=HistoryLoaded[(i,0,0)]
+                        TrainInput[(i,3)]=-2
+                        break
+                    
                     #TrainInput[(i,9)]=HistoryLoaded[(i,3,ii)]
                     TrainInput[(i,8)]=HistoryLoaded[(i,3,ii)]
                     Close=HistoryLoaded[(i,3,ii)]
@@ -1439,7 +1445,7 @@ def CSZL_TrainValueCal(InputData,zmkt=1,zbb=1):
     for i in range(x):
         if InputData[(i,3)]>0 :
 
-            if InputData[(i,1)]==zmkt and InputData[(i,5)]==zbb:
+            if InputData[(i,1)]==zmkt and InputData[(i,4)]==zbb:
                 #print(InputData[(i,0)])
                 cur_strategy+=InputData[(i,7)]
                 cur_strategycal+=1
