@@ -24,6 +24,9 @@
   <ItemGroup>
     <Compile Include="CSZLsuperGET.py" />
     <Compile Include="CSZLsuper.py" />
+    <Compile Include="CSZLsuperTrain.py">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Content Include="data\today_all_data.csv" />

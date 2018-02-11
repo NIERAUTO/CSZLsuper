@@ -12,7 +12,7 @@ import random
 import time
 
 import CSZLsuperGET
-
+import CSZLsuperTrain
 
 #====定义线程引用====
 def Z_CSZL_superGETAllroutine():
@@ -44,12 +44,10 @@ if __name__ == '__main__':
     #CSZLsuperGET.CSZL_SecretDataAnalyse()
 
 
-
-
     #总列表初始化
-    CSZLsuperGET.CSZL_superinit()
+    g_all_listin=CSZLsuperGET.CSZL_superinit()
 
-    CSZLsuperGET.CSZL_TrainMain()
+    CSZLsuperTrain.CSZL_TrainMainNEW(g_all_listin)
 
     #历史数据分析(初始化)
     CSZLsuperGET.CSZL_HistoryDataAnalysis()
