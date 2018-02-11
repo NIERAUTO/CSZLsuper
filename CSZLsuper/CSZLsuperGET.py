@@ -1108,9 +1108,6 @@ def CSZL_TrainMain():
 
     if True:
 
-        
-
-
         first=TrainDate[0]
         xx=0
         for singledate in TrainDate:
@@ -1139,6 +1136,11 @@ def CSZL_TrainMain():
         np.save(txtFileA, DataRecord)
 
 
+    if False:
+        test=1
+
+
+
 
     txtFile1 = cwd + '\\data\\'+'Train_data.npy'
     DataRecord=np.load(txtFile1)
@@ -1151,10 +1153,13 @@ def CSZL_TrainMain():
 
     ztestarray=np.zeros((4,4),dtype=float)
 
+    #ztestarray=ztestarray+100000
+
     for i in range(x):
         for ii in range(y):
             for iii in range(z):
                 ztestarray[ii,iii]+=DataRecord[i,ii,iii,1]
+                #ztestarray[ii,iii]=ztestarray[ii,iii]*(100+DataRecord[i,ii,iii,1])/100
                 #print("%10d %2d %2d %8.2f " % (DataRecord[i,ii,iii,0], ii+1, iii+1, DataRecord[i,ii,iii,1]),end="")
             #print("\n")  
 
@@ -1178,12 +1183,15 @@ def CSZL_TrainInit():
     HistoryLoaded=np.load(txtFile1)
 
     #HistoryLoaded=HistoryLoaded.tail(50)
+    startdate=20171122
+    enddate=20171125
 
     z=HistoryLoaded.shape[2]    #50
 
     for ii in  range(z):
-        #这里暂时拿603999来作为日期检测的种子，之后会寻找更加合适的方法
-        TrainDate.append(HistoryLoaded[(1,6,ii)])
+        #这里暂时拿600004来作为日期检测的种子，因为该股三年内没有停牌过，之后会寻找更加合适的方法1327
+        if(HistoryLoaded[(1,6,ii)]>=startdate and HistoryLoaded[(1,6,ii)]<=enddate ):
+            TrainDate.append(HistoryLoaded[(1,6,ii)])
 
     #日期 数值1 数值2 结果
     DataRecord=np.zeros((z,4,4,2),dtype=float)
@@ -1282,11 +1290,11 @@ def CSZL_TrainInputInit(target_dateA,target_dateB):
                 TrainInput[(i,6)]=2
 
 
-            '''
+            #去除数据不全的
             if HistoryLoaded[(i,1,(z-1))]==0:
                 TrainInput[(i,3)]=-1
                 continue
-            '''
+
 
 
             #得到最后的结果
@@ -1454,7 +1462,7 @@ def CSZL_TrainValueCal(InputData,zmkt=1,zbb=1):
     finalzzzz=finalzzz/datacal
 
     test=final_cur_strategy-finalzzzz
-    return (test)
+    return (finalzzzz)
 
 
 def CSZL_TrainResult(InputData):
