@@ -46,14 +46,15 @@ def CSZL_TrainMainNEW(g_all_resultin):
 
     #初始化长期属性
     CSZL_LongProp()
-
+    start_time = time.time()
     #初始化短期属性
     CSZL_ShortProp()
 
-    start_time = time.time()
-    TrainInput_test(ShortProp)
-    print('函数执行完毕,用时:%sms' % ((time.time()-start_time)*1000))
 
+    #TrainInput_test(ShortProp)
+
+    CSZL_TrainValueCalNEW(LongProp,ShortProp)
+    print('函数执行完毕,用时:%sms' % ((time.time()-start_time)*1000))
     zzzz=1
 
 def CSZL_LongProp():
@@ -158,7 +159,7 @@ def CSZL_LongProp():
 def CSZL_ShortProp():
     global LongProp
     global ShortProp
-    #code availableflag tempresult strategy1 strategy2 strategy3 reserve1 reserve2
+    #code availableflag AtoBresult strategy1 strategy2 strategy3 reserve1 reserve2
 
     ShortProp=np.zeros((4000,8),dtype=float)
 
@@ -185,6 +186,7 @@ def CSZL_ShortProp():
             Close=0
             for ii in range(z):
 
+                #DateA to DateB 's result
                 if HistoryLoaded[(i,6,ii)]==target_dateA:
                     
                     if(HistoryLoaded[(i,3,ii)]==HistoryLoaded[(i,1,ii)]and HistoryLoaded[(i,3,ii)]==HistoryLoaded[(i,2,ii)]and HistoryLoaded[(i,3,ii)]==HistoryLoaded[(i,4,ii)]):
@@ -216,37 +218,48 @@ def CSZL_ShortProp():
             continue
 
 
-def CSZL_TrainValueCalNEW(InputData):
-    x=InputData.shape[0]
-    y=InputData.shape[1]
+def CSZL_TrainValueCalNEW(InputDataLong,InputDataShort):
+    x=InputDataLong.shape[0]
+    Ly=InputDataLong.shape[1]
 
-    cur_strategy=0
+    Sy=InputDataShort.shape[1]
+
+
     finalzzz=0
     datacal=0
     cur_strategycal=0
 
     #TrainInput_test(InputData)
 
+    Counter=np.zeros((5,5,5,4),dtype=float)
+
 
     for i in range(x):
-        if InputData[(i,3)]>0 :
+        if InputDataShort[(i,1)]>0 :
+     
+            Counter[(int(InputDataLong[(i,1)]),int(InputDataLong[(i,2)]),int(InputDataLong[(i,3)]),1)]+=InputDataShort[(i,2)]
+            Counter[(int(InputDataLong[(i,1)]),int(InputDataLong[(i,2)]),int(InputDataLong[(i,3)]),2)]+=1
 
-            if InputData[(i,1)]==zmkt and InputData[(i,4)]==zbb:
-                #print(InputData[(i,0)])
-                cur_strategy+=InputData[(i,7)]
-                cur_strategycal+=1
+
             #kkk=InputData[(i,9)]
-            finalzzz+=InputData[(i,7)]
+            finalzzz+=InputDataShort[(i,2)]
             datacal+=1
-    #print("/n")
-    if(cur_strategycal==0):
-        return -99
 
-    final_cur_strategy=cur_strategy/cur_strategycal
+    for i in range(1,5):
+        for ii in range(1,5):
+            for iii in range(1,5):
+                if(Counter[i,ii,iii,2]!=0):          
+                    Counter[i,ii,iii,3]= Counter[i,ii,iii,1]/Counter[i,ii,iii,2]
+                    print("%8.2f " % Counter[i,ii,iii,3],end="")
+
+
+            print("\n")
+        print("\n") 
+
     finalzzzz=finalzzz/datacal
-
-    test=final_cur_strategy-finalzzzz
-    return (test)
+    print('all:%f' % (finalzzzz))
+    
+    return (Counter,finalzzzz)
 
 def CSZL_TrainInitNEW():
     global HistoryLoaded
