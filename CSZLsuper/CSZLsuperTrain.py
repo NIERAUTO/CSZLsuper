@@ -167,7 +167,7 @@ def CSZL_ShortProp():
     y=HistoryLoaded.shape[1]    #7
     z=HistoryLoaded.shape[2]    #50
     
-    target_dateA=20170629
+    target_dateA=20171225
     target_dateB=20180118
 
     Available=0
@@ -185,6 +185,22 @@ def CSZL_ShortProp():
             #得到最后的结果
             Close=0
             for ii in range(z):
+                cur=HistoryLoaded[(i,1,ii)]
+                red=HistoryLoaded[(i,2,ii)]-HistoryLoaded[(i,1,ii)]
+                whole=HistoryLoaded[(i,3,ii)]-HistoryLoaded[(i,1,ii)]
+                green=HistoryLoaded[(i,4,ii)]-HistoryLoaded[(i,1,ii)]
+                vol=HistoryLoaded[(i,5,ii)]
+
+                if whole>=0:
+                    ShortProp[(i,3)]=1
+                    if (red-whole)/cur>0.02:
+                        ShortProp[(i,3)]=2
+                else:
+                    ShortProp[(i,3)]=3
+                    if (green-whole)/cur<-0.02:
+                        ShortProp[(i,3)]=4
+            
+
 
                 #DateA to DateB 's result
                 if HistoryLoaded[(i,6,ii)]==target_dateA:
@@ -209,6 +225,8 @@ def CSZL_ShortProp():
                     ShortProp[(i,1)]=1
                     Available+=1
                     break
+
+
 
             dsfsf=2
 
@@ -237,8 +255,8 @@ def CSZL_TrainValueCalNEW(InputDataLong,InputDataShort):
     for i in range(x):
         if InputDataShort[(i,1)]>0 :
      
-            Counter[(int(InputDataLong[(i,1)]),int(InputDataLong[(i,2)]),int(InputDataLong[(i,3)]),1)]+=InputDataShort[(i,2)]
-            Counter[(int(InputDataLong[(i,1)]),int(InputDataLong[(i,2)]),int(InputDataLong[(i,3)]),2)]+=1
+            Counter[(int(InputDataLong[(i,1)]),int(InputDataLong[(i,6)]),int(InputDataLong[(i,3)]),1)]+=InputDataShort[(i,2)]
+            Counter[(int(InputDataLong[(i,1)]),int(InputDataLong[(i,6)]),int(InputDataLong[(i,3)]),2)]+=1
 
 
             #kkk=InputData[(i,9)]
@@ -250,7 +268,7 @@ def CSZL_TrainValueCalNEW(InputDataLong,InputDataShort):
             for iii in range(1,5):
                 if(Counter[i,ii,iii,2]!=0):          
                     Counter[i,ii,iii,3]= Counter[i,ii,iii,1]/Counter[i,ii,iii,2]
-                    print("%8.2f " % Counter[i,ii,iii,3],end="")
+                    print("%8.2f %d " % (Counter[i,ii,iii,3],Counter[i,ii,iii,2]),end="")
 
 
             print("\n")
