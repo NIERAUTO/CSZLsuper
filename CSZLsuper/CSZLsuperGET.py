@@ -152,8 +152,9 @@ def CSZL_superINFOupdate():
                 #print("NO2:%s with score %f \n"%(str(g_part_result[cur_long-2]['s_Cname'],"utf-8"),g_part_result[cur_long-2]['s_zValue']))
                 #print("NO3:%s with score %f \n"%(str(g_part_result[cur_long-3]['s_Cname'],"utf-8"),g_part_result[cur_long-3]['s_zValue']))
 
-                for i in range(20):
-                    print("NO%d:%s with score %f \n"%(i+1,str(g_part_result[cur_long-1-i]['s_Cname'],"utf-8"),g_part_result[cur_long-1-i]['s_zValue']))
+                if(cur_long>1):
+                    for i in range(cur_long-1):
+                        print("NO%d:%s with score %f \n"%(i+1,str(g_part_result[cur_long-1-i]['s_Cname'],"utf-8"),g_part_result[cur_long-1-i]['s_zValue']))
 
             elif INFO_part_routine==(-1):
                 print ("PARTroutine : Wrong")
@@ -467,6 +468,7 @@ def CSZL_superAnalysePARTroutine():
         
         if (CSZL_TimeCheck() and update_start):
         #if (CSZL_TimeCheck() ):
+        
             try:
                 #先吧原part_list的数据拿过来
                 buff_part_result=g_part_result.copy()

@@ -159,59 +159,83 @@ def CSZL_LongProp():
 def CSZL_ShortProp():
     global LongProp
     global ShortProp
-    #code availableflag AtoBresult strategy1 strategy2 strategy3 reserve1 reserve2
 
-    ShortProp=np.zeros((4000,8),dtype=float)
+
+    #print ('\033[5;31;2m%8.4f %d \033[0m' % (num,num2) )
+
+    #code availableflag AtoBresult shape whole high low reserve1 buy sell 
+    ShortProp=np.zeros((4000,10),dtype=float)
 
     x=len(g_all_result)         #4000
     y=HistoryLoaded.shape[1]    #7
     z=HistoryLoaded.shape[2]    #50
     
-    target_dateA=20171225
-    target_dateB=20180118
+    target_dateA=20170125
+    target_dateB=20180125
 
     Available=0
+
+    countershape=[0,0,0,0,0,0,0,0,0,0,0,0,0]
+
+    counter3=[0,0,0,0]
+
+    Ktype_counter=np.zeros((13,13,13,3),dtype=float)
+
+    cur_shape=0
+    last_shape=0
+    last_shape2=0
+    last_shape3=0
+    last_shape4=0
+
+    last_close3=0
+    last_close2=0
+    last_close=0
+
+    zzzcounter=0
+
 
     for i in range(x):    
         temp=str(g_all_result[i]['s_code'],"utf-8")
         zzz=float(temp)
         zzz2=HistoryLoaded[(i,0,0)]
         #保证相同项
+
+        #countershape.clear()
+        #countershape=[0,0,0,0,0,0,0,0,0,0,0,0,0]
+
         if(zzz==zzz2):
             #code(index)
             ShortProp[i,0]=HistoryLoaded[i,0,0]
 
- 
+            short_startflag=False
             #得到最后的结果
             Close=0
+
+            #波动率计数
+            sectionrate=0
+            sectionratecounter=0
+
+            last_close3=0
+            last_close2=0
+            last_close=0
+
+            last_shape4=0
+            last_shape3=0
+            last_shape2=0
+            last_shape=0
+
             for ii in range(z):
-                cur=HistoryLoaded[(i,1,ii)]
-                red=HistoryLoaded[(i,2,ii)]-HistoryLoaded[(i,1,ii)]
-                whole=HistoryLoaded[(i,3,ii)]-HistoryLoaded[(i,1,ii)]
-                green=HistoryLoaded[(i,4,ii)]-HistoryLoaded[(i,1,ii)]
-                vol=HistoryLoaded[(i,5,ii)]
-
-                if whole>=0:
-                    ShortProp[(i,3)]=1
-                    if (red-whole)/cur>0.02:
-                        ShortProp[(i,3)]=2
-                else:
-                    ShortProp[(i,3)]=3
-                    if (green-whole)/cur<-0.02:
-                        ShortProp[(i,3)]=4
-            
-
 
                 #DateA to DateB 's result
                 if HistoryLoaded[(i,6,ii)]==target_dateA:
-                    
+                    short_startflag=True
                     if(HistoryLoaded[(i,3,ii)]==HistoryLoaded[(i,1,ii)]and HistoryLoaded[(i,3,ii)]==HistoryLoaded[(i,2,ii)]and HistoryLoaded[(i,3,ii)]==HistoryLoaded[(i,4,ii)]):
-                        zzz=HistoryLoaded[(i,0,0)]
+                        #zzz=HistoryLoaded[(i,0,0)]
                         ShortProp[(i,1)]=-1
                         break
                     
                     #ShortProp[(i,9)]=HistoryLoaded[(i,3,ii)]
-                    ShortProp[(i,6)]=HistoryLoaded[(i,3,ii)]
+                    ShortProp[(i,8)]=HistoryLoaded[(i,3,ii)]
                     Close=HistoryLoaded[(i,3,ii)]
                 elif HistoryLoaded[(i,6,ii)]==target_dateB and Close!=0:
 
@@ -221,19 +245,170 @@ def CSZL_ShortProp():
                         break
 
                     ShortProp[(i,2)]=((HistoryLoaded[(i,3,ii)]-Close)/Close)*100
-                    ShortProp[(i,7)]=HistoryLoaded[(i,3,ii)]        
+                    ShortProp[(i,9)]=HistoryLoaded[(i,3,ii)]        
                     ShortProp[(i,1)]=1
                     Available+=1
                     break
 
+                if(short_startflag):
+                    cur=HistoryLoaded[(i,1,ii)]
+                    if cur==0:
+                        break
+
+
+
+                    #high=HistoryLoaded[(i,2,ii)]-HistoryLoaded[(i,1,ii)]
+                    whole=HistoryLoaded[(i,3,ii)]-HistoryLoaded[(i,1,ii)]
+                    #low=HistoryLoaded[(i,4,ii)]-HistoryLoaded[(i,1,ii)]
+                    
+
+                    redline=HistoryLoaded[(i,2,ii)]-HistoryLoaded[(i,3,ii)]
+                    redline2=HistoryLoaded[(i,2,ii)]-HistoryLoaded[(i,1,ii)]
+
+                    greenline=HistoryLoaded[(i,4,ii)]-HistoryLoaded[(i,3,ii)]
+                    greenline2=HistoryLoaded[(i,4,ii)]-HistoryLoaded[(i,1,ii)]
+
+                    section=HistoryLoaded[(i,2,ii)]-HistoryLoaded[(i,4,ii)]
+
+                    vol=HistoryLoaded[(i,5,ii)]
+
+                    sectionrate+=(section/cur)
+                    sectionratecounter+=1
+
+                    #找形态
+
+
+
+                    response_rate=0.005
+                    cur_shape=0
+
+                    if((whole/cur)>response_rate):
+                        if((redline/cur)>response_rate):
+                            if((greenline2/cur)<(-response_rate)):
+                                cur_shape=4
+                            else:
+                                cur_shape=5
+                        elif((greenline2/cur)<-response_rate):
+                            cur_shape=2
+                        else:
+                            cur_shape=1
+
+                    elif ((whole/cur)<(-response_rate)):
+                        if((redline2/cur)>response_rate):
+                            if((greenline/cur)<(-response_rate)):
+                                cur_shape=9
+                            else:
+                                cur_shape=11
+                        elif((greenline/cur)<(-response_rate)):
+                            cur_shape=8
+                        else:
+                            cur_shape=12
+                    else:
+                        if((redline2/cur)>response_rate):
+                            if((greenline2/cur)<(-response_rate)):
+                                cur_shape=6
+                            else:
+                                cur_shape=10
+                        elif((greenline2/cur)<(-response_rate)):
+                            cur_shape=3
+                        else:
+                            cur_shape=7                     
+
+                    #单日
+                    '''
+                    if(last_close!=0 and last_shape2!=0):
+                        if((last_close2-last_close)/last_close2<0.095 and (last_close2-last_close)/last_close2>-0.095):
+
+                            plustest=((HistoryLoaded[(i,3,ii)]-last_close)/last_close)
+
+                            if(plustest>0.1):
+                                zzzzzzz=0
+
+                            Ktype_counter[last_shape3,last_shape2,last_shape,1]+=plustest
+                            Ktype_counter[last_shape3,last_shape2,last_shape,0]+=1
+                            if(last_shape3==9 and last_shape2==5 and last_shape==4):
+                                zzzcounter+=1
+                    '''
+
+                    #两日
+                    if(last_close3!=0 and last_shape4!=0):
+                        if((last_close3-last_close2)/last_close3<0.095 and (last_close3-last_close2)/last_close3>-0.095):
+
+                            plustest=((HistoryLoaded[(i,3,ii)]-last_close2)/last_close2)
+
+                            if(plustest>0.22):
+                                zzzzzzz=0
+
+                            Ktype_counter[last_shape4,last_shape3,last_shape2,1]+=plustest
+                            Ktype_counter[last_shape4,last_shape3,last_shape2,0]+=1
+                            if(last_shape3==9 and last_shape2==5 and last_shape==4):
+                                zzzcounter+=1
+
+
+                    last_close3=last_close2
+                    last_close2=last_close
+                    last_close=HistoryLoaded[(i,3,ii)]
+
+                    last_shape4=last_shape3
+                    last_shape3=last_shape2
+                    last_shape2=last_shape
+                    last_shape=cur_shape
+
+                    '''
+
+                    countershape[int(ShortProp[(i,3)])]+=1
+                    countershape[0]+=1
+
+                    if whole>=0:
+                        ShortProp[(i,3)]=1
+                        if (high-whole)/cur>0.02:
+                            ShortProp[(i,3)]=2
+                    else:
+                        ShortProp[(i,3)]=3
+                        if (low-whole)/cur<-0.02:
+                            ShortProp[(i,3)]=4
+                    '''
+            #波动率
+            if(sectionratecounter>0):
+                sectioncal=sectionrate/sectionratecounter
+                if(sectioncal>0.045):
+                    ShortProp[(i,4)]=1
+                    #counter3[0]+=1
+                elif(sectioncal>0.03):
+                    ShortProp[(i,4)]=2
+                    #counter3[1]+=1
+                elif(sectioncal>0.02):
+                    ShortProp[(i,4)]=3
+                    #counter3[2]+=1
+                else:
+                    ShortProp[(i,4)]=4
+                    #counter3[3]+=1
 
 
             dsfsf=2
 
-
         else:
-            wrongconter+=1
             continue
+
+    for i in range(1,13):
+        for ii in range(1,13):
+            for iii in range(1,13):
+                if(Ktype_counter[i,ii,iii,1]!=0):          
+                    Ktype_counter[i,ii,iii,2]= Ktype_counter[i,ii,iii,1]/Ktype_counter[i,ii,iii,0]
+                    if(Ktype_counter[i,ii,iii,2]>0.005 and Ktype_counter[i,ii,iii,0]>100):
+                        print("xxxx%6.4f %4d " % (Ktype_counter[i,ii,iii,2],Ktype_counter[i,ii,iii,0]),end="")
+                    elif(Ktype_counter[i,ii,iii,2]<-0.01):
+                        print("oo%6.4f %4d " % (Ktype_counter[i,ii,iii,2],Ktype_counter[i,ii,iii,0]),end="")
+                    else:
+                        print("  %6.4f %4d " % (Ktype_counter[i,ii,iii,2],Ktype_counter[i,ii,iii,0]),end="")                        
+
+                else:
+                    print("%8.4f %4d " % (0,0),end="")
+
+            print("\n")
+        print("\n") 
+    
+    zzzzz=1
 
 
 def CSZL_TrainValueCalNEW(InputDataLong,InputDataShort):
@@ -255,8 +430,8 @@ def CSZL_TrainValueCalNEW(InputDataLong,InputDataShort):
     for i in range(x):
         if InputDataShort[(i,1)]>0 :
      
-            Counter[(int(InputDataLong[(i,1)]),int(InputDataLong[(i,6)]),int(InputDataLong[(i,3)]),1)]+=InputDataShort[(i,2)]
-            Counter[(int(InputDataLong[(i,1)]),int(InputDataLong[(i,6)]),int(InputDataLong[(i,3)]),2)]+=1
+            Counter[(int(InputDataLong[(i,1)]),int(InputDataLong[(i,6)]),int(InputDataShort[(i,4)]),1)]+=InputDataShort[(i,2)]
+            Counter[(int(InputDataLong[(i,1)]),int(InputDataLong[(i,6)]),int(InputDataShort[(i,4)]),2)]+=1
 
 
             #kkk=InputData[(i,9)]
@@ -290,14 +465,14 @@ def CSZL_TrainInitNEW():
     HistoryLoaded=np.load(txtFile1)
 
 
-    startdate=20171226
+    startdate=20150126
     enddate=20180126
 
     z=HistoryLoaded.shape[2]    #50
 
     for ii in  range(z):
-        #这里暂时拿特定一个数据来作为日期检测的种子,之后会寻找更加合适的方法1327
-        if(HistoryLoaded[(1,6,ii)]>=startdate and HistoryLoaded[(1,6,ii)]<=enddate ):
+        #这里暂时拿特定一个数据来作为日期检测的种子,之后会寻找更加合适的方法1328
+        if(HistoryLoaded[(1328,6,ii)]>=startdate and HistoryLoaded[(1328,6,ii)]<=enddate ):
             TrainDate.append(HistoryLoaded[(1,6,ii)])
 
     return TrainDate
