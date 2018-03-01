@@ -38,13 +38,15 @@ def CSZL_TrainMainNEW(g_all_resultin):
     global HistoryLoaded
     global LongProp
 
+    CSZL_Sorttest()
+
     #初始化g_all_result
     g_all_result=g_all_resultin
 
     #初始化训练周期
     TrainDate=CSZL_TrainInitNEW()
 
-    CSZL_TrainDataSave()
+
 
 
     #初始化长期属性
@@ -59,7 +61,7 @@ def CSZL_TrainMainNEW(g_all_resultin):
     A,B=CSZL_TrainValueCalNEW(LongProp,ShortProp)
 
 
-
+    CSZL_TrainDataSave()
 
 
     print('函数执行完毕,用时:%sms' % ((time.time()-start_time)*1000))
@@ -561,8 +563,16 @@ def CSZL_SecAnalyseNew():
                     #print("\n")
                 '''
 
+def CSZL_Sorttest():
+    a = np.random.randint(0,10,size=(2,4,8))
 
+    a1=np.sort(a,axis = 0)
 
+    print(a)
+    print('\n\n')
+    print(a1)
+
+    xxxx=1
 
 def CSZL_TrainMain(g_all_resultin):
     global DataRecord

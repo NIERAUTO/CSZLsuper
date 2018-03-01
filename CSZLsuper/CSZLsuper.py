@@ -47,7 +47,7 @@ if __name__ == '__main__':
     #总列表初始化
     g_all_listin=CSZLsuperGET.CSZL_superinit()
 
-    #CSZLsuperTrain.CSZL_TrainMainNEW(g_all_listin)
+    CSZLsuperTrain.CSZL_TrainMainNEW(g_all_listin)
 
     #历史数据分析(初始化)
     CSZLsuperGET.CSZL_HistoryDataAnalysis()
