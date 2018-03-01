@@ -44,6 +44,9 @@ def CSZL_TrainMainNEW(g_all_resultin):
     #初始化训练周期
     TrainDate=CSZL_TrainInitNEW()
 
+    CSZL_TrainDataSave()
+
+
     #初始化长期属性
     CSZL_LongProp()
     start_time = time.time()
@@ -53,7 +56,12 @@ def CSZL_TrainMainNEW(g_all_resultin):
 
     #TrainInput_test(ShortProp)
 
-    CSZL_TrainValueCalNEW(LongProp,ShortProp)
+    A,B=CSZL_TrainValueCalNEW(LongProp,ShortProp)
+
+
+
+
+
     print('函数执行完毕,用时:%sms' % ((time.time()-start_time)*1000))
     zzzz=1
 
@@ -410,7 +418,6 @@ def CSZL_ShortProp():
     
     zzzzz=1
 
-
 def CSZL_TrainValueCalNEW(InputDataLong,InputDataShort):
     x=InputDataLong.shape[0]
     Ly=InputDataLong.shape[1]
@@ -425,7 +432,6 @@ def CSZL_TrainValueCalNEW(InputDataLong,InputDataShort):
     #TrainInput_test(InputData)
 
     Counter=np.zeros((5,5,5,4),dtype=float)
-
 
     for i in range(x):
         if InputDataShort[(i,1)]>0 :
@@ -452,6 +458,7 @@ def CSZL_TrainValueCalNEW(InputDataLong,InputDataShort):
     finalzzzz=finalzzz/datacal
     print('all:%f' % (finalzzzz))
     
+
     return (Counter,finalzzzz)
 
 def CSZL_TrainInitNEW():
@@ -476,6 +483,86 @@ def CSZL_TrainInitNEW():
             TrainDate.append(HistoryLoaded[(1,6,ii)])
 
     return TrainDate
+
+def CSZL_TrainDataSave():
+
+    global HistoryLoaded
+
+    #no code value1 value2 value3
+    HisAna=np.zeros((4000,5),dtype=float)
+
+    for z in range(4000):
+        HisAna[z,0]=z
+        HisAna[z,1]=HistoryLoaded[z,0,0]
+        HisAna[z,2]=0.5
+
+    cwd = os.getcwd()
+    now=datetime.datetime.now()
+    now=now.strftime('%Y%m%d')
+
+    txtFileA = cwd + '\\output\\HisAna.npy'
+    np.save(txtFileA, HisAna)
+
+
+def CSZL_SecAnalyseNew():
+    #暂时对不使用sec数据
+    SecUse=False
+    if SecUse:
+        #从Secdata中读取文件
+        #获取目录下所有文件
+        cwd = os.getcwd()
+        file_dir = cwd + '\\data\\secret'
+    
+        for root, dirs,files in os.walk(file_dir):
+            L=[]
+            for file in files:  
+                if os.path.splitext(file)[1] == '.npy':  
+                    L.append(os.path.join(root, file))
+
+        #遍历所有文件
+        for z_file in L:
+
+            #试试我的正则功力
+            nums = re.findall(r"secretA(\d+).",z_file)
+            cur_date=float(nums[0])
+            if cur_date==target_dateB:
+
+                SecLoaded=np.load(z_file)
+
+                '''
+                cwd = os.getcwd()
+                txtFile1 = cwd + '\\data\\secret\\'+'secretA20180119.npy'
+                SecLoaded=np.load(txtFile1)
+                '''
+
+                x=SecLoaded.shape[0]    #4000
+                y=SecLoaded.shape[1]    #270
+                z=SecLoaded.shape[2]    #21
+
+                for i in range(x):
+                    #if SecLoaded[(i,0,0)]==600055:
+                    #print("\n")
+                    if TrainInput[(i,3)]==1:
+                        for ii in range(y):
+                            zzz=1
+                            #for iii in range(z):
+                    
+
+                '''
+                for i in range(x-1):
+                    #if SecLoaded[(i,0,0)]==600055:
+                    #print("\n")
+                    for ii in range(y):
+                        for iii in range(z):
+                            zzz=1
+                            #print("%8.2f " % SecLoaded[(i,ii,iii)],end="")
+
+                        #print("\n")
+                    #print("\n")
+                '''
+
+
+
 
 def CSZL_TrainMain(g_all_resultin):
     global DataRecord

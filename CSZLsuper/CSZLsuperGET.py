@@ -204,7 +204,7 @@ def CSZL_superinit():
     ('s_last', float),('s_high', float),('s_low', float),
     ('s_stflag', float),('s_s2', float),('s_s3', float),('s_s4', float),('s_s5', float),
     ('s_b1', float),('s_b2', float),('s_b3', float),('s_b4', float),('s_b5', float),
-    ('s_vol', float),('s_wholecap', float),('s_mktcap', float),('s_10Value', float),
+    ('s_vol', float),('s_wholecap', float),('s_mktcap', float),('s_HisOutput1', float),
     ('s_InFastUpdataList', int),('s_counter', int),('s_useful', int),('s_zValue', float),
     ('s_UpdateHour', int),('s_UpdateMinute', int),('s_ReachedHour', int),('s_ReachedMinute', int),
     ('s_ReachedFlag', int),('s_ReachedPrice', float),('s_Buy', int),('s_Cname', 'S40'),
@@ -599,7 +599,7 @@ def CSZL_ValueCal(StockResult,StockINFO):
     cur_price=StockResult['s_now']
     cur_high=StockResult['s_high']
     cur_mktcap=StockResult['s_mktcap']
-    cur_10Value=StockINFO['s_10Value']
+    cur_10Value=StockINFO['s_HisOutput1']
 
 
     LastValue=0
@@ -759,33 +759,27 @@ def CSZL_HistoryDataAnalysis():
     global g_all_info
 
     cwd = os.getcwd()
-    txtFile1 = cwd + '\\data\\'+'History_data.npy'
-    HistoryLoaded=np.load(txtFile1)
+    txtFile1 = cwd + '\\output\\'+'HisAna.npy'
+    HistoryAnaLoaded=np.load(txtFile1)
 
-    dates=HistoryLoaded.shape[2]
 
-    #对应的列表第4个第3项数据，第8天的(倒数第二天)
-    
+    #180301改成直接读取分析结果
+
     for z in range(len(g_all_result)):
         try:
-            value=0
-            div=1
-            for x in range(dates):
-                if HistoryLoaded[(z,1,x)]!=0:
+            #ddd=g_all_info[z]['s_code']
+            #eee=HistoryAnaLoaded[z,1]
 
-                    value+=abs((HistoryLoaded[(z,3,x)]-HistoryLoaded[(z,1,x)])/HistoryLoaded[(z,1,x)])
-                    div+=1
-            value=value/div
-            '''
-            if(value<0.01):
-                tes2t=2
-            test=g_all_info[z]['s_code']
-            '''
-            g_all_info[z]['s_10Value']=value
+            g_all_info[z]['s_HisOutput1']=HistoryAnaLoaded[z,2]
             
 
         except Exception as ex:
             print (Exception,":",ex)
+
+
+    zzzz=1
+
+
 def HistoryDataInit():
     """
     历史数据保存
@@ -1064,7 +1058,11 @@ def CSZL_CurDataOutput():
 def DataSave(All_info):
     
     cwd = os.getcwd()
-    txtFile1 = cwd + '\\output\\'+'z_saveinfo.txt'
+    now=datetime.datetime.now()
+    now=now.strftime('%Y%m%d')
+
+
+    txtFile1 = cwd + '\\output\\bot_history\\'+'z_saveinfo'+now+'.txt'
 
     with open(txtFile1,'w') as fobj:
         #fobj=open(txtFile1,'w')

@@ -36,6 +36,7 @@
     <Folder Include="data\" />
     <Folder Include="log\" />
     <Folder Include="output\" />
+    <Folder Include="output\bot_history\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
