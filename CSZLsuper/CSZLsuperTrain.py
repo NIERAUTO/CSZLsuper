@@ -38,7 +38,7 @@ def CSZL_TrainMainNEW(g_all_resultin):
     global HistoryLoaded
     global LongProp
 
-    CSZL_Sorttest()
+    #CSZL_Sorttest()
 
     #初始化g_all_result
     g_all_result=g_all_resultin
@@ -566,12 +566,16 @@ def CSZL_SecAnalyseNew():
 def CSZL_Sorttest():
     a = np.random.randint(0,10,size=(2,4,8))
 
-    a1=np.sort(a,axis = 0)
+    #a1=np.sort(a,axis = 0)
+
+    a1=np.argsort(a,axis = 0)
+    a2=a[:,:,2]
 
     print(a)
     print('\n\n')
     print(a1)
-
+    print('\n\n')
+    print(a2)
     xxxx=1
 
 def CSZL_TrainMain(g_all_resultin):
