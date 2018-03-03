@@ -47,7 +47,9 @@ if __name__ == '__main__':
     #总列表初始化
     g_all_listin=CSZLsuperGET.CSZL_superinit()
 
-    CSZLsuperTrain.CSZL_TrainMainNEW(g_all_listin)
+    getinput=int(input("是否为测试模式:1表示是 其他表示不是\n"))
+    if(getinput==1):
+        CSZLsuperTrain.CSZL_TrainMainNEW(g_all_listin)
 
     #历史数据分析(初始化)
     CSZLsuperGET.CSZL_HistoryDataAnalysis()

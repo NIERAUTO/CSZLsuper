@@ -242,3 +242,4 @@ ModelManifest.xml
 .fake/
 /CSZLsuper/data/secret
 /CSZLsuper/AllWrongMessage.txt
+/CSZLsuper/output/bot_history
