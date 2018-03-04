@@ -31,6 +31,9 @@ g_all_result=[]
 LongProp=[]
 #实时短期属性 每个循环可能都需要改变
 ShortProp=[]
+#3天前的形状 2天前的形状 1天前的形状 0 1 2 counter total value
+Ktype_counter=[]
+
 
 def CSZL_TrainMainNEW(g_all_resultin):
     #global DataRecord
@@ -38,7 +41,7 @@ def CSZL_TrainMainNEW(g_all_resultin):
     global HistoryLoaded
     global LongProp
 
-    #CSZL_Sorttest()
+    CSZL_Sorttest()
 
     #初始化g_all_result
     g_all_result=g_all_resultin
@@ -68,6 +71,10 @@ def CSZL_TrainMainNEW(g_all_resultin):
     zzzz=1
 
 def CSZL_LongProp():
+    '''
+    基于HistoryLoaded和g_all_result更新长策略LongProp
+    '''
+
     global LongProp
 
     #todo改成可读取式的
@@ -173,7 +180,7 @@ def CSZL_ShortProp():
 
     #print ('\033[5;31;2m%8.4f %d \033[0m' % (num,num2) )
 
-    #code availableflag AtoBresult shape whole high low reserve1 buy sell 
+    #code availableflag AtoBresult shape sectionrate high low reserve1 buy sell 
     ShortProp=np.zeros((4000,10),dtype=float)
 
     x=len(g_all_result)         #4000
@@ -189,7 +196,7 @@ def CSZL_ShortProp():
 
     counter3=[0,0,0,0]
 
-    Ktype_counter=np.zeros((13,13,13,3),dtype=float)
+    Ktype_counter=np.zeros((13,13,13,8),dtype=float)
 
     cur_shape=0
     last_shape=0
@@ -225,6 +232,7 @@ def CSZL_ShortProp():
             sectionrate=0
             sectionratecounter=0
 
+            #初始化收盘价以及3日形态计数
             last_close3=0
             last_close2=0
             last_close=0
@@ -281,14 +289,12 @@ def CSZL_ShortProp():
                     section=HistoryLoaded[(i,2,ii)]-HistoryLoaded[(i,4,ii)]
 
                     vol=HistoryLoaded[(i,5,ii)]
-
+                    #区间波动率计数
                     sectionrate+=(section/cur)
                     sectionratecounter+=1
 
+                   
                     #找形态
-
-
-
                     response_rate=0.005
                     cur_shape=0
 
@@ -406,15 +412,18 @@ def CSZL_ShortProp():
                 if(Ktype_counter[i,ii,iii,1]!=0):          
                     Ktype_counter[i,ii,iii,2]= Ktype_counter[i,ii,iii,1]/Ktype_counter[i,ii,iii,0]
                     if(Ktype_counter[i,ii,iii,2]>0.005 and Ktype_counter[i,ii,iii,0]>100):
-                        print("xxxx%6.4f %4d " % (Ktype_counter[i,ii,iii,2],Ktype_counter[i,ii,iii,0]),end="")
+                        Ktype_counter[i,ii,iii,3]=3
+                        #print("xxxx%6.4f %4d " % (Ktype_counter[i,ii,iii,2],Ktype_counter[i,ii,iii,0]),end="")
                     elif(Ktype_counter[i,ii,iii,2]<-0.01):
-                        print("oo%6.4f %4d " % (Ktype_counter[i,ii,iii,2],Ktype_counter[i,ii,iii,0]),end="")
+                        Ktype_counter[i,ii,iii,3]=0
+                        #print("oo%6.4f %4d " % (Ktype_counter[i,ii,iii,2],Ktype_counter[i,ii,iii,0]),end="")
                     else:
-                        print("  %6.4f %4d " % (Ktype_counter[i,ii,iii,2],Ktype_counter[i,ii,iii,0]),end="")                        
+                        Ktype_counter[i,ii,iii,3]=-3
+                        #print("  %6.4f %4d " % (Ktype_counter[i,ii,iii,2],Ktype_counter[i,ii,iii,0]),end="")                        
 
                 else:
-                    print("%8.4f %4d " % (0,0),end="")
-
+                    #print("%8.4f %4d " % (0,0),end="")
+                    Ktype_counter[i,ii,iii,3]=1
             print("\n")
         print("\n") 
     
