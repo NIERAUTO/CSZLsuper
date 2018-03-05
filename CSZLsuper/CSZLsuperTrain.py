@@ -32,7 +32,7 @@ LongProp=[]
 #实时短期属性 每个循环可能都需要改变
 ShortProp=[]
 #3天前的形状 2天前的形状 1天前的形状 0 1 2 counter total value
-Ktype_counter=[]
+a=[]
 
 
 def CSZL_TrainMainNEW(g_all_resultin):
@@ -197,6 +197,7 @@ def CSZL_ShortProp():
     counter3=[0,0,0,0]
 
     Ktype_counter=np.zeros((13,13,13,8),dtype=float)
+    Ktype_sorter=np.zeros((12*12*12,2),dtype=float)
 
     cur_shape=0
     last_shape=0
@@ -409,8 +410,15 @@ def CSZL_ShortProp():
     for i in range(1,13):
         for ii in range(1,13):
             for iii in range(1,13):
-                if(Ktype_counter[i,ii,iii,1]!=0):          
+
+    
+                #分类
+                if(Ktype_counter[i,ii,iii,1]!=0):    
                     Ktype_counter[i,ii,iii,2]= Ktype_counter[i,ii,iii,1]/Ktype_counter[i,ii,iii,0]
+
+                    #准备排序
+                    Ktype_sorter[((i-1)*12*12+(ii-1)*12+iii-1),0]=Ktype_counter[i,ii,iii,2];
+
                     if(Ktype_counter[i,ii,iii,2]>0.005 and Ktype_counter[i,ii,iii,0]>100):
                         Ktype_counter[i,ii,iii,3]=3
                         #print("xxxx%6.4f %4d " % (Ktype_counter[i,ii,iii,2],Ktype_counter[i,ii,iii,0]),end="")
@@ -423,10 +431,34 @@ def CSZL_ShortProp():
 
                 else:
                     #print("%8.4f %4d " % (0,0),end="")
-                    Ktype_counter[i,ii,iii,3]=1
+                    Ktype_counter[i,ii,iii,3]=-1
+            #print("\n")
+        #print("\n") 
+    a1=Ktype_sorter[:,0]
+    a2=np.argsort(a1)
+    a3=np.argsort(a1)
+
+    #序号与数字重排(这边居然搞了20分钟才搞清楚关系，也不知道搞没搞最简，先这样了)
+    for i in range(len(a2)):
+        a3[a2[i]]=i
+
+
+    for i in range(1,13):
+        for ii in range(1,13):
+            for iii in range(1,13):
+                cur_rank=a3[((i-1)*12*12+(ii-1)*12+iii-1)]
+                Ktype_counter[i,ii,iii,4]=cur_rank
+                #zz2=(int)((sdfsdf)/(12*12))
+                #zz3=(int)((sdfsdf-zz2*12*12)/12)
+                #zz4=(int)(sdfsdf-zz2*12*12-zz3*12)
+                print("%4.4f %4d " % (Ktype_counter[i,ii,iii,2],cur_rank),end="")
+                    
+
             print("\n")
         print("\n") 
-    
+
+    #print(a1)
+
     zzzzz=1
 
 def CSZL_TrainValueCalNEW(InputDataLong,InputDataShort):
@@ -573,10 +605,9 @@ def CSZL_SecAnalyseNew():
                 '''
 
 def CSZL_Sorttest():
-    a = np.random.randint(0,10,size=(2,4,8))
 
-    #a1=np.sort(a,axis = 0)
-
+    '''
+    a = np.random.randint(0,1000.,size=(5,5,5,2))
     a1=np.argsort(a,axis = 0)
     a2=a[:,:,2]
 
@@ -585,6 +616,7 @@ def CSZL_Sorttest():
     print(a1)
     print('\n\n')
     print(a2)
+    '''
     xxxx=1
 
 def CSZL_TrainMain(g_all_resultin):
