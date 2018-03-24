@@ -749,18 +749,50 @@ def CSZL_HistoryDataAnalysis():
     历史数据分析
     """
 
+    global g_all_info
+    global g_all_result
+
+    cwd = os.getcwd()
     #初始化历史数据
     getinput=int(input("是否初始化历史总数据:1表示初始化 2表示不初始化\n"))
 
     if(getinput==1):
         HistoryDataInit()
+        txtFileA = cwd + '\\output\\KtypeThree.npy'
+        KtypeThreeLoaded=np.load(txtFileA)
+
+        txtFile1 = cwd + '\\data\\'+'History_data.npy'
+        HistoryLoaded=np.load(txtFile1)
+
+        x=len(g_all_result)         #4000
+        y=HistoryLoaded.shape[1]    #7
+        z=HistoryLoaded.shape[2]    #天数
+
+        for i in range(len(g_all_result)):
+            try:
+                temp=str(g_all_result[i]['s_code'],"utf-8")
+                zzz=float(temp)
+                zzz2=HistoryLoaded[(i,0,0)]
+                if(zzz==zzz2):
+                    if(HistoryLoaded[(i,0,0)]!=0):
+                        edcx=1
+
+                else:
+                    continue
+
+                g_all_info[i]['s_HisOutput1']=HistoryAnaLoaded[i,2]
+            
+
+            except Exception as ex:
+                print (Exception,":",ex)
 
 
-    global g_all_info
 
-    cwd = os.getcwd()
     txtFile1 = cwd + '\\output\\'+'HisAna.npy'
     HistoryAnaLoaded=np.load(txtFile1)
+
+
+
 
 
     #180301改成直接读取分析结果
@@ -782,15 +814,15 @@ def CSZL_HistoryDataAnalysis():
 
 def HistoryDataInit():
     """
-    历史数据保存
+    历史数据保存(进30天)
     """
-
-    dates=300
+    
+    dates=20
 
     
     DayNow=datetime.datetime.now()
     #这里改时间
-    NDayAgo = (datetime.datetime.now() - datetime.timedelta(days = 500))
+    NDayAgo = (datetime.datetime.now() - datetime.timedelta(days = 30))
     otherStyleTime = NDayAgo.strftime("%Y-%m-%d")
     otherStyleTime2 = DayNow.strftime("%Y-%m-%d")
 

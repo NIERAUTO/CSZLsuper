@@ -49,12 +49,11 @@ def CSZL_TrainMainNEW(g_all_resultin):
     #初始化训练周期
     TrainDate=CSZL_TrainInitNEW()
 
-
-
+    CSZL_SecAnalyseNew()
 
     #初始化长期属性
     CSZL_LongProp()
-    start_time = time.time()
+    #start_time = time.time()
     #初始化短期属性
     CSZL_ShortProp()
 
@@ -64,10 +63,12 @@ def CSZL_TrainMainNEW(g_all_resultin):
     A,B=CSZL_TrainValueCalNEW(LongProp,ShortProp)
 
 
+
+
     CSZL_TrainDataSave()
 
 
-    print('函数执行完毕,用时:%sms' % ((time.time()-start_time)*1000))
+    #print('函数执行完毕,用时:%sms' % ((time.time()-start_time)*1000))
     zzzz=1
 
 def CSZL_LongProp():
@@ -196,6 +197,8 @@ def CSZL_ShortProp():
 
     counter3=[0,0,0,0]
 
+
+    #三天前 两天前 一天前 [0变动和 1变动计数 2前两项商 3排名]
     Ktype_counter=np.zeros((13,13,13,8),dtype=float)
     Ktype_sorter=np.zeros((12*12*12,2),dtype=float)
 
@@ -358,6 +361,8 @@ def CSZL_ShortProp():
 
                             Ktype_counter[last_shape4,last_shape3,last_shape2,1]+=plustest
                             Ktype_counter[last_shape4,last_shape3,last_shape2,0]+=1
+
+                            #用于测试
                             if(last_shape3==9 and last_shape2==5 and last_shape==4):
                                 zzzcounter+=1
 
@@ -451,17 +456,24 @@ def CSZL_ShortProp():
                 #zz2=(int)((sdfsdf)/(12*12))
                 #zz3=(int)((sdfsdf-zz2*12*12)/12)
                 #zz4=(int)(sdfsdf-zz2*12*12-zz3*12)
-                print("%4.4f %4d " % (Ktype_counter[i,ii,iii,2],cur_rank),end="")
-                    
+                #print("%4.4f %4d " % (Ktype_counter[i,ii,iii,2],cur_rank),end="")
 
             print("\n")
         print("\n") 
 
     #print(a1)
 
+    cwd = os.getcwd()
+
+    txtFileA = cwd + '\\output\\KtypeThree.npy'
+    np.save(txtFileA, Ktype_counter)
+
     zzzzz=1
 
 def CSZL_TrainValueCalNEW(InputDataLong,InputDataShort):
+
+    #输出
+
     x=InputDataLong.shape[0]
     Ly=InputDataLong.shape[1]
 
@@ -476,6 +488,7 @@ def CSZL_TrainValueCalNEW(InputDataLong,InputDataShort):
 
     Counter=np.zeros((5,5,5,4),dtype=float)
 
+    #初始化看的长策略和短策略，并加入最后计算
     for i in range(x):
         if InputDataShort[(i,1)]>0 :
      
@@ -487,6 +500,7 @@ def CSZL_TrainValueCalNEW(InputDataLong,InputDataShort):
             finalzzz+=InputDataShort[(i,2)]
             datacal+=1
 
+    #将最后结果计入Counter[i,ii,iii,3]
     for i in range(1,5):
         for ii in range(1,5):
             for iii in range(1,5):
@@ -515,7 +529,7 @@ def CSZL_TrainInitNEW():
     HistoryLoaded=np.load(txtFile1)
 
 
-    startdate=20150126
+    startdate=20060126
     enddate=20180126
 
     z=HistoryLoaded.shape[2]    #50
@@ -540,8 +554,8 @@ def CSZL_TrainDataSave():
         HisAna[z,2]=0.5
 
     cwd = os.getcwd()
-    now=datetime.datetime.now()
-    now=now.strftime('%Y%m%d')
+    #now=datetime.datetime.now()
+    #now=now.strftime('%Y%m%d')
 
     txtFileA = cwd + '\\output\\HisAna.npy'
     np.save(txtFileA, HisAna)
@@ -549,7 +563,7 @@ def CSZL_TrainDataSave():
 
 def CSZL_SecAnalyseNew():
     #暂时对不使用sec数据
-    SecUse=False
+    SecUse=True
     if SecUse:
         #从Secdata中读取文件
         #获取目录下所有文件
@@ -568,7 +582,7 @@ def CSZL_SecAnalyseNew():
             #试试我的正则功力
             nums = re.findall(r"secretA(\d+).",z_file)
             cur_date=float(nums[0])
-            if cur_date==target_dateB:
+            if cur_date==20180212:
 
                 SecLoaded=np.load(z_file)
 
@@ -583,14 +597,13 @@ def CSZL_SecAnalyseNew():
                 z=SecLoaded.shape[2]    #21
 
                 for i in range(x):
-                    #if SecLoaded[(i,0,0)]==600055:
-                    #print("\n")
-                    if TrainInput[(i,3)]==1:
-                        for ii in range(y):
-                            zzz=1
-                            #for iii in range(z):
-                    
+                    if SecLoaded[(i,0,0)]==2497:
 
+                        for ii in range(y):
+                            for iii in range(z):
+                                print("%8.2f " % SecLoaded[(i,ii,iii)],end="")
+                            print("\n")
+                        print("\n")
                 '''
                 for i in range(x-1):
                     #if SecLoaded[(i,0,0)]==600055:
@@ -603,6 +616,7 @@ def CSZL_SecAnalyseNew():
                         #print("\n")
                     #print("\n")
                 '''
+    zzz=1
 
 def CSZL_Sorttest():
 
