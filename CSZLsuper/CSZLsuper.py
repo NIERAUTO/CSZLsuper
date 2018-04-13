@@ -10,6 +10,7 @@ from pandas import DataFrame
 
 import random
 import time
+import numpy as np
 
 import CSZLsuperGET
 import CSZLsuperTrain
@@ -42,6 +43,22 @@ if __name__ == '__main__':
 
     #重要数据分析
     #CSZLsuperGET.CSZL_SecretDataAnalyse()
+
+    testSecretData_B=np.zeros((5000*20+1,30),dtype=float)
+
+    buff_dr_result = ts.get_realtime_quotes(["600000","300328"])
+    for xxx in buff_dr_result:
+        print(xxx)
+
+    timeArray = time.strptime(buff_dr_result['date'][1], "%Y-%m-%d")
+    h,m,s = buff_dr_result['time'][0].strip().split(":")
+
+    testSecretData_B[345,2]=int(timeArray[0])*10000+int(timeArray[1])*100+int(timeArray[2])
+
+
+    testSecretData_B[345,3]=int(h)*10000+int(m)*100+int(s)
+    testSecretData_B[345,4]=int(buff_dr_result['code'][1])
+    testSecretData_B[345,5]=buff_dr_result['pre_close'][1]
 
 
     #总列表初始化

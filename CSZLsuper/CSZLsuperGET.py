@@ -24,8 +24,10 @@ g_all_result=[]
 g_part_result=[]
 g_all_info=[]
 
+#常时数据采集结构
 SecretData_A=[]
-
+#特殊数据采集结构
+SecretData_B=[]
 
 g_list_update_index=0   #全局更新数据位置
 g_exit_flag=True
@@ -589,7 +591,7 @@ def CSZL_superAnalysePARTroutine():
             #print ('Waiting......\n')
 
         sleeptime=random.randint(50,99)
-        time.sleep(sleeptime/10)    
+        time.sleep(sleeptime/100)    
     
     return 0
 
@@ -920,7 +922,7 @@ def CSZL_SecretDataInit():
 
 
     global SecretData_A
-    #global SecretData_B
+    global SecretData_B
     
     #code,otherinfo + time(minute),(time+b1p1~s5p5)
     SecretData_A=np.zeros((4000,270,21),dtype=float)
@@ -951,6 +953,12 @@ def CSZL_SecretDataInit():
     print(SecretData_A[(2,0,0)])
     '''
 
+    #time1日期 time2详细时间 code代码 last昨收 20个值 保留
+    SecretData_B=np.zeros((5000*20+1,30),dtype=float)
+    
+
+
+
 def CSZL_SecretDataUpdate(tushare_result,date_max,update_index=1):
     """
     重要数据更新
@@ -962,13 +970,15 @@ def CSZL_SecretDataUpdate(tushare_result,date_max,update_index=1):
 
 
     global SecretData_A
-    #global SecretData_B
+    global SecretData_B
     
 
     for i in range(date_max):
 
         #获取当前数据更新位置
         CurIndex=int(SecretData_A[(update_index+i,0,1)])
+
+        B_CurIndex=int(SecretData_B[(0,0)])+1
         #超范围检测
         if CurIndex>269:
             continue
@@ -981,7 +991,7 @@ def CSZL_SecretDataUpdate(tushare_result,date_max,update_index=1):
             #更新时间记录
             SecretData_A[(update_index+i,CurIndex,0)]=str(CurHour*100+CurMinute)
             test=Z_AvailableJudge(tushare_result['b1_v'][i])
-            #更新数据
+            #更新常时数据
             SecretData_A[(update_index+i,CurIndex,1)]=Z_AvailableJudge(tushare_result['b1_v'][i])
             SecretData_A[(update_index+i,CurIndex,2)]=Z_AvailableJudge(tushare_result['b1_p'][i])
             SecretData_A[(update_index+i,CurIndex,3)]=Z_AvailableJudge(tushare_result['b2_v'][i])
@@ -1004,8 +1014,44 @@ def CSZL_SecretDataUpdate(tushare_result,date_max,update_index=1):
             SecretData_A[(update_index+i,CurIndex,19)]=Z_AvailableJudge(tushare_result['a5_v'][i])
             SecretData_A[(update_index+i,CurIndex,20)]=Z_AvailableJudge(tushare_result['a5_p'][i])
 
+            #更新特殊数据
+
+            timeArray = time.strptime(tushare_result['date'][i], "%Y-%m-%d")
+            h,m,s = tushare_result['time'][i].strip().split(":")
+
+            SecretData_B[(B_CurIndex,0)]=int(timeArray[0])*10000+int(timeArray[1])*100+int(timeArray[2])
+            SecretData_B[(B_CurIndex,1)]=int(h)*10000+int(m)*100+int(s)
+            SecretData_B[(B_CurIndex,2)]=int(tushare_result['code'][i])
+            SecretData_B[(B_CurIndex,3)]=tushare_result['pre_close'][i]
+
+
+            SecretData_B[(B_CurIndex,4)]=Z_AvailableJudge(tushare_result['b1_v'][i])
+            SecretData_B[(B_CurIndex,5)]=Z_AvailableJudge(tushare_result['b1_p'][i])
+            SecretData_B[(B_CurIndex,6)]=Z_AvailableJudge(tushare_result['b2_v'][i])
+            SecretData_B[(B_CurIndex,7)]=Z_AvailableJudge(tushare_result['b2_p'][i])
+            SecretData_B[(B_CurIndex,8)]=Z_AvailableJudge(tushare_result['b3_v'][i])
+            SecretData_B[(B_CurIndex,9)]=Z_AvailableJudge(tushare_result['b3_p'][i])
+            SecretData_B[(B_CurIndex,10)]=Z_AvailableJudge(tushare_result['b4_v'][i])
+            SecretData_B[(B_CurIndex,11)]=Z_AvailableJudge(tushare_result['b4_p'][i])
+            SecretData_B[(B_CurIndex,12)]=Z_AvailableJudge(tushare_result['b5_v'][i])
+            SecretData_B[(B_CurIndex,13)]=Z_AvailableJudge(tushare_result['b5_p'][i])
+
+            SecretData_A[(update_index+i,CurIndex,11)]=Z_AvailableJudge(tushare_result['a1_v'][i])
+            SecretData_A[(update_index+i,CurIndex,12)]=Z_AvailableJudge(tushare_result['a1_p'][i])
+            SecretData_A[(update_index+i,CurIndex,13)]=Z_AvailableJudge(tushare_result['a2_v'][i])
+            SecretData_A[(update_index+i,CurIndex,14)]=Z_AvailableJudge(tushare_result['a2_p'][i])
+            SecretData_A[(update_index+i,CurIndex,15)]=Z_AvailableJudge(tushare_result['a3_v'][i])
+            SecretData_A[(update_index+i,CurIndex,16)]=Z_AvailableJudge(tushare_result['a3_p'][i])
+            SecretData_A[(update_index+i,CurIndex,17)]=Z_AvailableJudge(tushare_result['a4_v'][i])
+            SecretData_A[(update_index+i,CurIndex,18)]=Z_AvailableJudge(tushare_result['a4_p'][i])
+            SecretData_A[(update_index+i,CurIndex,19)]=Z_AvailableJudge(tushare_result['a5_v'][i])
+            SecretData_A[(update_index+i,CurIndex,20)]=Z_AvailableJudge(tushare_result['a5_p'][i])
+
+
             #更新数据位置
             SecretData_A[(update_index+i,0,1)]=SecretData_A[(update_index+i,0,1)]+1
+
+            SecretData_B[(0,0)]=SecretData_B[(0,0)]+1
 
         except Exception as ex:
             #print (Exception,":",ex)
