@@ -562,7 +562,7 @@ def CSZL_TrainDataSave():
 
 
 def CSZL_SecAnalyseNew():
-    #暂时对不使用sec数据
+    #开始更新sec逻辑
     SecUse=True
     if SecUse:
         #从Secdata中读取文件
@@ -582,7 +582,7 @@ def CSZL_SecAnalyseNew():
             #试试我的正则功力
             nums = re.findall(r"secretA(\d+).",z_file)
             cur_date=float(nums[0])
-            if cur_date==20180212:
+            if cur_date==20180413:
 
                 SecLoaded=np.load(z_file)
 
@@ -597,7 +597,7 @@ def CSZL_SecAnalyseNew():
                 z=SecLoaded.shape[2]    #21
 
                 for i in range(x):
-                    if SecLoaded[(i,0,0)]==2497:
+                    if SecLoaded[(i,0,0)]==600461:
 
                         for ii in range(y):
                             for iii in range(z):

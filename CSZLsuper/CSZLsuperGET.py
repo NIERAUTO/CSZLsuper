@@ -76,8 +76,11 @@ def Z_EXIT():
     todo之后可能会用class来实现退出
     """
     global g_exit_flag
-
     g_exit_flag=False
+
+    CSZL_SecretDataSave()
+
+
 
 def Z_LOG_SAVE(savefname,wrongmessage):
     """
@@ -403,7 +406,7 @@ def CSZL_superGETAllroutine():
                 CSZL_TypeChange(buff_result,buff_dr_result,update_cur,g_list_update_index,update_counter)
                 CSZL_INFOUpdate(g_all_info,update_cur,g_list_update_index)
                 #隐藏信息更新
-                CSZL_SecretDataUpdate(buff_dr_result,update_cur,g_list_update_index)
+                CSZL_SecretData_A_Update(buff_dr_result,update_cur,g_list_update_index)
 
                 #数据指针更新
                 g_list_update_index+=update_cur
@@ -498,6 +501,9 @@ def CSZL_superAnalysePARTroutine():
 
                     #将tushare的信息转换为我的格式
                     CSZL_TypeChange(buff_part_result,buff_dr_result,part_list_cur-1,update_index=1)
+
+                    #刷新特殊数据采集结构
+                    CSZL_SecretData_B_Update(buff_dr_result,(part_list_cur-1))
 
                     #重新计算value
                     for i in range(part_list_cur-1):
@@ -647,7 +653,7 @@ def CSZL_TypeChange(z_type_result,tushare_result,date_max,update_index=1,s_count
 
     """
     global CurHour
-    global CurMinute
+    global CurMinute    #todo这里要改的直接用接收时间
 
 
     for i in range(date_max):
@@ -656,13 +662,28 @@ def CSZL_TypeChange(z_type_result,tushare_result,date_max,update_index=1,s_count
             z_type_result[update_index+i]['s_counter']=s_counter
             #z_type_result[update_index+i]['s_UpdateFlag']=1
             
+            h,m,s = tushare_result['time'][i].strip().split(":")
+
+            receive_time=int(h)*10000+int(m)*100+int(s)
+            if(receive_time<92600 and tushare_result['price'][i]==""):
+                if(tushare_result['b1_v'][i]!=""):
+                    z_type_result[update_index+i]['s_now']=tushare_result['b1_p'][i]
+                else:
+                    z_type_result[update_index+i]['s_now']=tushare_result['pre_close'][i]
+
+
+                z_type_result[update_index+i]['s_high']=z_type_result[update_index+i]['s_now']
+                z_type_result[update_index+i]['s_low']=z_type_result[update_index+i]['s_now']
+            else:
+
+                z_type_result[update_index+i]['s_now']=tushare_result['price'][i]
+                z_type_result[update_index+i]['s_high']=tushare_result['high'][i]
+                z_type_result[update_index+i]['s_low']=tushare_result['low'][i]
+
             z_type_result[update_index+i]['s_last']=tushare_result['pre_close'][i]
-            z_type_result[update_index+i]['s_now']=tushare_result['price'][i]
-            z_type_result[update_index+i]['s_high']=tushare_result['high'][i]
-            z_type_result[update_index+i]['s_low']=tushare_result['low'][i]
+
             #这里有bug似乎
             z_type_result[update_index+i]['s_Cname']=tushare_result['name'][i].encode("utf-8") 
-
 
             z_type_result[update_index+i]['s_UpdateHour']=CurHour
             z_type_result[update_index+i]['s_UpdateMinute']=CurMinute
@@ -927,8 +948,6 @@ def CSZL_SecretDataInit():
     #code,otherinfo + time(minute),(time+b1p1~s5p5)
     SecretData_A=np.zeros((4000,270,21),dtype=float)
 
-    #SecretData_B=np.zeros((4000,241,21),dtype=float)
-
     #todo used for highspeed_test
     #SecretData_C=np.zeros((100,101,21),dtype=float)
 
@@ -959,7 +978,7 @@ def CSZL_SecretDataInit():
 
 
 
-def CSZL_SecretDataUpdate(tushare_result,date_max,update_index=1):
+def CSZL_SecretData_A_Update(tushare_result,date_max,update_index=1):
     """
     重要数据更新
     """
@@ -970,7 +989,6 @@ def CSZL_SecretDataUpdate(tushare_result,date_max,update_index=1):
 
 
     global SecretData_A
-    global SecretData_B
     
 
     for i in range(date_max):
@@ -978,19 +996,15 @@ def CSZL_SecretDataUpdate(tushare_result,date_max,update_index=1):
         #获取当前数据更新位置
         CurIndex=int(SecretData_A[(update_index+i,0,1)])
 
-        B_CurIndex=int(SecretData_B[(0,0)])+1
         #超范围检测
         if CurIndex>269:
             continue
 
         try:
 
-            
-            #z2=update_index+i
-
             #更新时间记录
             SecretData_A[(update_index+i,CurIndex,0)]=str(CurHour*100+CurMinute)
-            test=Z_AvailableJudge(tushare_result['b1_v'][i])
+
             #更新常时数据
             SecretData_A[(update_index+i,CurIndex,1)]=Z_AvailableJudge(tushare_result['b1_v'][i])
             SecretData_A[(update_index+i,CurIndex,2)]=Z_AvailableJudge(tushare_result['b1_p'][i])
@@ -1014,6 +1028,38 @@ def CSZL_SecretDataUpdate(tushare_result,date_max,update_index=1):
             SecretData_A[(update_index+i,CurIndex,19)]=Z_AvailableJudge(tushare_result['a5_v'][i])
             SecretData_A[(update_index+i,CurIndex,20)]=Z_AvailableJudge(tushare_result['a5_p'][i])
 
+
+            #更新数据位置
+            SecretData_A[(update_index+i,0,1)]=SecretData_A[(update_index+i,0,1)]+1
+
+
+        except Exception as ex:
+
+            wrongEx=str(ex)
+
+
+def CSZL_SecretData_B_Update(tushare_result,date_max):
+    """
+    重要数据更新
+    """
+
+    global CurHour
+    global CurMinute
+
+    global SecretData_B
+    
+
+    for i in range(date_max):
+
+        #获取当前数据更新位置
+
+        B_CurIndex=int(SecretData_B[(0,0)])+1
+        #超范围检测
+        if B_CurIndex>(5000*20):
+            continue
+
+        try:
+
             #更新特殊数据
 
             timeArray = time.strptime(tushare_result['date'][i], "%Y-%m-%d")
@@ -1036,20 +1082,19 @@ def CSZL_SecretDataUpdate(tushare_result,date_max,update_index=1):
             SecretData_B[(B_CurIndex,12)]=Z_AvailableJudge(tushare_result['b5_v'][i])
             SecretData_B[(B_CurIndex,13)]=Z_AvailableJudge(tushare_result['b5_p'][i])
 
-            SecretData_A[(update_index+i,CurIndex,11)]=Z_AvailableJudge(tushare_result['a1_v'][i])
-            SecretData_A[(update_index+i,CurIndex,12)]=Z_AvailableJudge(tushare_result['a1_p'][i])
-            SecretData_A[(update_index+i,CurIndex,13)]=Z_AvailableJudge(tushare_result['a2_v'][i])
-            SecretData_A[(update_index+i,CurIndex,14)]=Z_AvailableJudge(tushare_result['a2_p'][i])
-            SecretData_A[(update_index+i,CurIndex,15)]=Z_AvailableJudge(tushare_result['a3_v'][i])
-            SecretData_A[(update_index+i,CurIndex,16)]=Z_AvailableJudge(tushare_result['a3_p'][i])
-            SecretData_A[(update_index+i,CurIndex,17)]=Z_AvailableJudge(tushare_result['a4_v'][i])
-            SecretData_A[(update_index+i,CurIndex,18)]=Z_AvailableJudge(tushare_result['a4_p'][i])
-            SecretData_A[(update_index+i,CurIndex,19)]=Z_AvailableJudge(tushare_result['a5_v'][i])
-            SecretData_A[(update_index+i,CurIndex,20)]=Z_AvailableJudge(tushare_result['a5_p'][i])
+            SecretData_B[(B_CurIndex,13)]=Z_AvailableJudge(tushare_result['a1_v'][i])
+            SecretData_B[(B_CurIndex,14)]=Z_AvailableJudge(tushare_result['a1_p'][i])
+            SecretData_B[(B_CurIndex,15)]=Z_AvailableJudge(tushare_result['a2_v'][i])
+            SecretData_B[(B_CurIndex,16)]=Z_AvailableJudge(tushare_result['a2_p'][i])
+            SecretData_B[(B_CurIndex,17)]=Z_AvailableJudge(tushare_result['a3_v'][i])
+            SecretData_B[(B_CurIndex,18)]=Z_AvailableJudge(tushare_result['a3_p'][i])
+            SecretData_B[(B_CurIndex,19)]=Z_AvailableJudge(tushare_result['a4_v'][i])
+            SecretData_B[(B_CurIndex,20)]=Z_AvailableJudge(tushare_result['a4_p'][i])
+            SecretData_B[(B_CurIndex,21)]=Z_AvailableJudge(tushare_result['a5_v'][i])
+            SecretData_B[(B_CurIndex,22)]=Z_AvailableJudge(tushare_result['a5_p'][i])
 
 
             #更新数据位置
-            SecretData_A[(update_index+i,0,1)]=SecretData_A[(update_index+i,0,1)]+1
 
             SecretData_B[(0,0)]=SecretData_B[(0,0)]+1
 
@@ -1102,16 +1147,16 @@ def CSZL_SecretDataSave():
     保存重要数据
     """
     global SecretData_A
-    #global SecretData_B
-    
-
+    global SecretData_B
+   
     cwd = os.getcwd()
     now=datetime.datetime.now()
     now=now.strftime('%Y%m%d')
 
     txtFileA = cwd + '\\data\\secret\\secretA'+now+'.npy'
+    txtFileB = cwd + '\\data\\secret\\secretB'+now+'.npy'
     np.save(txtFileA, SecretData_A)
-
+    np.save(txtFileB, SecretData_B)
 
 def CSZL_CurDataOutput():
     """
