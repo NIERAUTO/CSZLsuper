@@ -563,12 +563,14 @@ def CSZL_TrainDataSave():
 
 def CSZL_SecAnalyseNew():
     #开始更新sec逻辑
-    SecUse=True
+    SecUse=False
+    SecUseB=True
+
     if SecUse:
         #从Secdata中读取文件
         #获取目录下所有文件
         cwd = os.getcwd()
-        file_dir = cwd + '\\data\\secret'
+        file_dir = cwd + '\\data\\secret\\A'
     
         for root, dirs,files in os.walk(file_dir):
             L=[]
@@ -581,7 +583,10 @@ def CSZL_SecAnalyseNew():
 
             #试试我的正则功力
             nums = re.findall(r"secretA(\d+).",z_file)
-            cur_date=float(nums[0])
+            if(nums!=[]):
+                cur_date=float(nums[0])
+            else:
+                continue
             if cur_date==20180413:
 
                 SecLoaded=np.load(z_file)
@@ -616,6 +621,46 @@ def CSZL_SecAnalyseNew():
                         #print("\n")
                     #print("\n")
                 '''
+
+    if SecUseB:
+        #从Secdata中读取文件
+        #获取目录下所有文件
+        cwd = os.getcwd()
+        file_dir = cwd + '\\data\\secret\\B'
+    
+        for root, dirs,files in os.walk(file_dir):
+            L=[]
+            for file in files:  
+                if os.path.splitext(file)[1] == '.npy':  
+                    L.append(os.path.join(root, file))
+
+        #遍历所有文件
+        for z_file in L:
+
+            #试试我的正则功力
+            nums = re.findall(r"secretB(\d+).",z_file)
+            if(nums!=[]):
+                cur_date=float(nums[0])
+            else:
+                continue
+            if cur_date==20180416:
+
+                SecLoaded=np.load(z_file)
+
+
+                x=SecLoaded.shape[0]    #4000
+                y=SecLoaded.shape[1]    #270
+
+                for i in range(10000):
+
+                    if SecLoaded[(i,2)]==860:
+
+                        for ii in range(y):
+
+                            print("%6.2f " % SecLoaded[(i,ii)],end="")
+                        print("\n")
+
+
     zzz=1
 
 def CSZL_Sorttest():

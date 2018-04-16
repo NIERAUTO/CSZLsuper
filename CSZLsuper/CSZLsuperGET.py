@@ -597,7 +597,7 @@ def CSZL_superAnalysePARTroutine():
             #print ('Waiting......\n')
 
         sleeptime=random.randint(50,99)
-        time.sleep(sleeptime/100)    
+        time.sleep(sleeptime/40)    
     
     return 0
 
@@ -623,7 +623,7 @@ def CSZL_ValueCal(StockResult,StockINFO):
     if (StockResult['s_plus']>=2.5) and (StockResult['s_plus']<6):
         LastValue+=StockResult['s_plus']
     
-
+        '''
         if (cur_mktcap<500000):
             LastValue+=2
         elif(cur_mktcap<1000000):
@@ -634,6 +634,7 @@ def CSZL_ValueCal(StockResult,StockINFO):
             LastValue-=1
         elif(cur_mktcap>=5000000):
             LastValue-=2
+        '''
 
     if(cur_10Value>0):
         LastValue+=0.5  
@@ -1153,8 +1154,8 @@ def CSZL_SecretDataSave():
     now=datetime.datetime.now()
     now=now.strftime('%Y%m%d')
 
-    txtFileA = cwd + '\\data\\secret\\secretA'+now+'.npy'
-    txtFileB = cwd + '\\data\\secret\\secretB'+now+'.npy'
+    txtFileA = cwd + '\\data\\secret\\A\\secretA'+now+'.npy'
+    txtFileB = cwd + '\\data\\secret\\B\\secretB'+now+'.npy'
     np.save(txtFileA, SecretData_A)
     np.save(txtFileB, SecretData_B)
 
