@@ -643,17 +643,17 @@ def CSZL_SecAnalyseNew():
                 cur_date=float(nums[0])
             else:
                 continue
-            if cur_date==20180416:
+            if cur_date==20180417:
 
                 SecLoaded=np.load(z_file)
 
 
-                x=SecLoaded.shape[0]    #4000
+                x=SecLoaded.shape[0]    
                 y=SecLoaded.shape[1]    #270
 
-                for i in range(10000):
+                for i in range(x):
 
-                    if SecLoaded[(i,2)]==860:
+                    if SecLoaded[(i,2)]==2023:
 
                         for ii in range(y):
 

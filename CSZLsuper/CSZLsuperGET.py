@@ -654,7 +654,7 @@ def CSZL_TypeChange(z_type_result,tushare_result,date_max,update_index=1,s_count
 
     """
     global CurHour
-    global CurMinute    #todo这里要改的直接用接收时间
+    global CurMinute    #todo这里要改成直接用接收时间
 
 
     for i in range(date_max):
@@ -666,7 +666,8 @@ def CSZL_TypeChange(z_type_result,tushare_result,date_max,update_index=1,s_count
             h,m,s = tushare_result['time'][i].strip().split(":")
 
             receive_time=int(h)*10000+int(m)*100+int(s)
-            if(receive_time<92600 and tushare_result['price'][i]==""):
+            #这里还需要考虑一下暂时先这样改180417
+            if(receive_time<92600 or tushare_result['price'][i]==""):
                 if(tushare_result['b1_v'][i]!=""):
                     z_type_result[update_index+i]['s_now']=tushare_result['b1_p'][i]
                 else:
@@ -1083,16 +1084,16 @@ def CSZL_SecretData_B_Update(tushare_result,date_max):
             SecretData_B[(B_CurIndex,12)]=Z_AvailableJudge(tushare_result['b5_v'][i])
             SecretData_B[(B_CurIndex,13)]=Z_AvailableJudge(tushare_result['b5_p'][i])
 
-            SecretData_B[(B_CurIndex,13)]=Z_AvailableJudge(tushare_result['a1_v'][i])
-            SecretData_B[(B_CurIndex,14)]=Z_AvailableJudge(tushare_result['a1_p'][i])
-            SecretData_B[(B_CurIndex,15)]=Z_AvailableJudge(tushare_result['a2_v'][i])
-            SecretData_B[(B_CurIndex,16)]=Z_AvailableJudge(tushare_result['a2_p'][i])
-            SecretData_B[(B_CurIndex,17)]=Z_AvailableJudge(tushare_result['a3_v'][i])
-            SecretData_B[(B_CurIndex,18)]=Z_AvailableJudge(tushare_result['a3_p'][i])
-            SecretData_B[(B_CurIndex,19)]=Z_AvailableJudge(tushare_result['a4_v'][i])
-            SecretData_B[(B_CurIndex,20)]=Z_AvailableJudge(tushare_result['a4_p'][i])
-            SecretData_B[(B_CurIndex,21)]=Z_AvailableJudge(tushare_result['a5_v'][i])
-            SecretData_B[(B_CurIndex,22)]=Z_AvailableJudge(tushare_result['a5_p'][i])
+            SecretData_B[(B_CurIndex,14)]=Z_AvailableJudge(tushare_result['a1_v'][i])
+            SecretData_B[(B_CurIndex,15)]=Z_AvailableJudge(tushare_result['a1_p'][i])
+            SecretData_B[(B_CurIndex,16)]=Z_AvailableJudge(tushare_result['a2_v'][i])
+            SecretData_B[(B_CurIndex,17)]=Z_AvailableJudge(tushare_result['a2_p'][i])
+            SecretData_B[(B_CurIndex,18)]=Z_AvailableJudge(tushare_result['a3_v'][i])
+            SecretData_B[(B_CurIndex,19)]=Z_AvailableJudge(tushare_result['a3_p'][i])
+            SecretData_B[(B_CurIndex,20)]=Z_AvailableJudge(tushare_result['a4_v'][i])
+            SecretData_B[(B_CurIndex,21)]=Z_AvailableJudge(tushare_result['a4_p'][i])
+            SecretData_B[(B_CurIndex,22)]=Z_AvailableJudge(tushare_result['a5_v'][i])
+            SecretData_B[(B_CurIndex,23)]=Z_AvailableJudge(tushare_result['a5_p'][i])
 
 
             #更新数据位置
