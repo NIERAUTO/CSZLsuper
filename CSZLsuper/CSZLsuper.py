@@ -37,6 +37,12 @@ t_AnalysePARTroutine = threading.Thread(target=Z_CSZL_superAnalysePARTroutine, a
 CSZL_threads.append(t_AnalysePARTroutine)
 #====================
 
+#测试模式
+TestModeFlag=True
+#初始列表初始化
+InitListUpdateModeFlag=False
+#近20日K线数据初始化
+K_Data_UpdateModeFlag=False
 
 
 if __name__ == '__main__':
@@ -47,8 +53,12 @@ if __name__ == '__main__':
     #总列表初始化
     g_all_listin=CSZLsuperGET.CSZL_superinit()
 
-    getinput=int(input("是否为测试模式:1表示是 其他表示不是\n"))
-    if(getinput==1):
+    getinput=int(input("是否启用默认设置\n"))
+    if(getinput!=1):
+        ModeChoice()
+
+
+    if(TestModeFlag):
         CSZLsuperTrain.CSZL_TrainMainNEW(g_all_listin)
 
     #历史数据分析(初始化)
@@ -83,4 +93,25 @@ if __name__ == '__main__':
     a=1
     
 
+def ModeChoice():
 
+    global TestModeFlag
+    global InitListUpdateModeFlag
+    global K_Data_UpdateModeFlag
+
+    TestModeFlag=False
+    InitListUpdateModeFlag=False
+    K_Data_UpdateModeFlag=False
+
+    getinput=int(input("是否为测试模式:1表示是 其他表示不是\n"))
+    if(getinput==1):    
+        TestModeFlag=True
+
+    getinput=int(input("是否初始化列表数据:1表示初始化 2表示不初始化\n"))
+    if(getinput==1):    
+        InitListUpdateModeFlag=True
+
+    getinput=int(input("是否初始化历史总数据:1表示初始化 2表示不初始化\n"))
+
+    if(getinput==1):    
+        K_Data_UpdateModeFlag=True

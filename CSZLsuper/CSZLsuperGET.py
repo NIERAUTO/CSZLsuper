@@ -197,11 +197,10 @@ def CSZL_superinit():
 
 
     #初始化选项
-    '''
-    getinput=int(input("是否初始化列表数据:1表示初始化 2表示不初始化\n"))
-    if(getinput==1):
+    
+    if(CSZLsuper.InitListUpdateModeFlag):
         CurDatalistCreate()
-    '''
+
 
     #======初始化总得到的数据 g_all_result======#
     #初始化typedef s_high
@@ -596,7 +595,7 @@ def CSZL_superAnalysePARTroutine():
             INFO_part_routine=0
             #print ('Waiting......\n')
 
-        sleeptime=random.randint(50,99)
+        sleeptime=random.randint(60,79)
         time.sleep(sleeptime/40)    
     
     return 0
@@ -779,27 +778,31 @@ def CSZL_HistoryDataAnalysis():
 
     cwd = os.getcwd()
     #初始化历史数据
-    getinput=int(input("是否初始化历史总数据:1表示初始化 2表示不初始化\n"))
-
-    if(getinput==1):
+    
+    if(CSZLsuper.K_Data_UpdateModeFlag):
         HistoryDataInit()
         txtFileA = cwd + '\\output\\KtypeThree.npy'
         KtypeThreeLoaded=np.load(txtFileA)
 
         txtFile1 = cwd + '\\data\\'+'History_data.npy'
-        HistoryLoaded=np.load(txtFile1)
+        Last20_K_Data=np.load(txtFile1)
+
+
+        txtFile1 = cwd + '\\output\\'+'HisAna.npy'
+        HistoryAnaLoaded=np.load(txtFile1)
+
 
         x=len(g_all_result)         #4000
-        y=HistoryLoaded.shape[1]    #7
-        z=HistoryLoaded.shape[2]    #天数
+        y=Last20_K_Data.shape[1]    #7
+        z=Last20_K_Data.shape[2]    #天数
 
         for i in range(len(g_all_result)):
             try:
                 temp=str(g_all_result[i]['s_code'],"utf-8")
                 zzz=float(temp)
-                zzz2=HistoryLoaded[(i,0,0)]
+                zzz2=Last20_K_Data[(i,0,0)]
                 if(zzz==zzz2):
-                    if(HistoryLoaded[(i,0,0)]!=0):
+                    if(Last20_K_Data[(i,0,0)]!=0):
                         edcx=1
 
                 else:
@@ -813,8 +816,6 @@ def CSZL_HistoryDataAnalysis():
 
 
 
-    txtFile1 = cwd + '\\output\\'+'HisAna.npy'
-    HistoryAnaLoaded=np.load(txtFile1)
 
 
 
@@ -827,7 +828,10 @@ def CSZL_HistoryDataAnalysis():
             #ddd=g_all_info[z]['s_code']
             #eee=HistoryAnaLoaded[z,1]
 
-            g_all_info[z]['s_HisOutput1']=HistoryAnaLoaded[z,2]
+            #g_all_info[z]['s_HisOutput1']=HistoryAnaLoaded[z,2]
+
+            #暂时放一放
+            g_all_info[z]['s_HisOutput1']=0
             
 
         except Exception as ex:
