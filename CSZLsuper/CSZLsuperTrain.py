@@ -23,7 +23,7 @@ import re
 
 
 All_K_Data=[]
-DataRecord=[]  
+#DataRecord=[]  
 #全局初始化数据
 g_all_result=[]
 
@@ -35,8 +35,15 @@ ShortProp=[]
 a=[]
 
 def CSZL_TrainInitNEW():
+    '''
+    输入全部的历史数据
+
+    输出交易日的日期序列TrainDate
+
+    '''
+
     global All_K_Data
-    global DataRecord
+    #global DataRecord
 
     TrainDate=[]
 

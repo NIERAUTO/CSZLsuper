@@ -20,7 +20,7 @@ import math
 import re
 
 z_init_nplist=[]
-g_all_result=[]
+g_all_result=[] #实时全局数据表
 g_part_result=[]
 g_all_info=[]
 
@@ -159,7 +159,7 @@ def CSZL_superINFOupdate():
 
                 if(cur_long>1):
                     for i in range(cur_long-1):
-                        print("NO%d:%s with score %f \n"%(i+1,str(g_part_result[cur_long-1-i]['s_Cname'],"utf-8"),g_part_result[cur_long-1-i]['s_zValue']))
+                        print("NO%d:%s with score %f \n"%(i+1,str(g_part_result[cur_long-1-i]['s_Cname'],"utf-8"),str(g_part_result[cur_long-1-i]['s_code'],"utf-8"),g_part_result[cur_long-1-i]['s_zValue']))
 
             elif INFO_part_routine==(-1):
                 print ("PARTroutine : Wrong")
@@ -187,6 +187,16 @@ def CSZL_superINFOupdate():
     '''
 
 def CSZL_superinit():
+    '''
+    全局初始化
+    可以从网络重新初始化
+    初始化的表包括:
+    
+    g_all_result
+    g_all_info
+    g_part_result
+
+    '''
 
     global g_all_result
     global g_part_result
@@ -198,7 +208,7 @@ def CSZL_superinit():
 
     #初始化选项
     
-    if(CSZLsuper.InitListUpdateModeFlag):
+    if(CSZLsuper.G_mode['InitListUpdateModeFlag']):
         CurDatalistCreate()
 
 
@@ -312,6 +322,8 @@ def CSZL_superinit():
 def CurDatalistCreate():
     """
     初始化当前更新列表
+    
+    
     """
 
     #todo 加个错误处理
@@ -779,8 +791,13 @@ def CSZL_HistoryDataAnalysis():
     cwd = os.getcwd()
     #初始化历史数据
     
-    if(CSZLsuper.K_Data_UpdateModeFlag):
-        HistoryDataInit()
+    if(CSZLsuper.G_mode['K_Data_UpdateModeFlag']):
+
+        #默认获取20天的数据
+        HistoryDataGet()
+        #CSZLsuperGET.HistoryDataGet("2017-04-04",10)
+        #HistoryDataInit()
+
         txtFileA = cwd + '\\output\\KtypeThree.npy'
         KtypeThreeLoaded=np.load(txtFileA)
 
@@ -941,6 +958,82 @@ def HistoryDataInit():
         cwd = os.getcwd()
         txtFile = cwd + '\\data\\'+'History_data.npy'
         np.save(txtFile, HistoryData10)
+
+def HistoryDataGet(
+    DayEnd=datetime.datetime.now().strftime("%Y-%m-%d"),
+    Datas=20):
+    """
+    截止日期("xxxx-xx-xx")
+    获取天数(int)
+
+    实际返回表格为截止日期前指定交易天数的数据,
+
+    """
+    days2=Datas*1.5+10
+
+
+    timeArray = time.strptime(DayEnd, "%Y-%m-%d")
+
+    timeNow = datetime.datetime(int(timeArray[0]), int(timeArray[1]), int(timeArray[2]), 12, 0, 0); 
+    DayStart = (timeNow - datetime.timedelta(days = days2)).strftime("%Y-%m-%d")
+    
+
+    HistoryDataSave=np.zeros((4000,7,Datas),dtype=float)
+
+    if True:
+        all=len(g_all_result)
+
+        for z in range(all):
+            try:
+  
+                if(z%30==0):
+                    print(z/all)
+                    print("\n")
+              
+                temp=str(g_all_result[z]['s_code'],"utf-8")
+                #print(temp)
+                HistoryDataSave[(z,0,0)]=temp
+                kget=ts.get_k_data(temp,start=DayStart, end=DayEnd)
+                Kdata=kget.tail(Datas)
+                
+                datamax=len(Kdata)
+
+                x=0
+
+                if(Kdata.empty==True):
+                    continue
+
+                #for x in range(0,datamax):
+                for singledatezz in Kdata.date:
+
+
+                    changedate=time.strptime(singledatezz,"%Y-%m-%d")
+                    changedate2=time.strftime("%Y%m%d",changedate)
+                    changedate3=int(changedate2)
+                    HistoryDataSave[(z,6,x)]=changedate3
+
+
+                    HistoryDataSave[(z,1,x)]=Kdata.open.data[x]
+                    HistoryDataSave[(z,2,x)]=Kdata.high.data[x]
+                    HistoryDataSave[(z,3,x)]=Kdata.close.data[x]
+                    HistoryDataSave[(z,4,x)]=Kdata.low.data[x]
+                    HistoryDataSave[(z,5,x)]=Kdata.volume.data[x]
+
+                    x+=1
+
+
+            except Exception as ex:
+                sleeptime=random.randint(50,99)
+                time.sleep(sleeptime/100)       
+                wrongmessage="HistoryRoutine FAIL at : %s \n" % ( time.ctime(time.time()))
+                print (wrongmessage)
+                wrongEx=str(ex)
+                Z_LOG_SAVE('HistoryWrongMessage.txt',wrongmessage+wrongEx)
+                print (Exception,":",ex)
+
+        cwd = os.getcwd()
+        txtFile = cwd + '\\data\\'+'History_data2.npy'
+        np.save(txtFile, HistoryDataSave)
 
 def CSZL_SecretDataInit():
     """
