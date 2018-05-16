@@ -83,90 +83,124 @@ def CSZL_LongProp():
     #todo自动调整平衡位置
     counter2=[0,0,0,0]
 
-    for i in range(x):    
+    wrongconter=0
+    rightcounter=0
+    searchcounter=0
+    updatecounter=0
+
+    #读取历史数据的位置
+    hisdata_index=1
+    #取出历史数据名称列表用于后面找不到位置时进行的搜索
+    CodeList=All_K_Data[:,0,0]
+    
+    for i in range(1,x):
         temp=str(g_all_result[i]['s_code'],"utf-8")
         zzz=float(temp)
-        zzz2=All_K_Data[(i,0,0)]
-        #保证相同项
-        if(zzz==zzz2):
-            
-            #code(index)
-            LongProp[i,0]=All_K_Data[i,0,0]
+        zzz2=All_K_Data[(hisdata_index,0,0)]
 
-            #mkt
-            #LongProp[(i,1)]=g_all_result[i]['s_mktcap']
-            if g_all_result[i]['s_mktcap']>0 and g_all_result[i]['s_mktcap']<400000:
-                counter2[0]+=1
-                LongProp[(i,1)]=1
-            elif g_all_result[i]['s_mktcap']>=400000 and g_all_result[i]['s_mktcap']<800000:
-                counter2[1]+=1
-                LongProp[(i,1)]=2
-            elif g_all_result[i]['s_mktcap']>=800000 and g_all_result[i]['s_mktcap']<2500000:
-                counter2[2]+=1
-                LongProp[(i,1)]=3
-            elif g_all_result[i]['s_mktcap']>=2500000:
-                counter2[3]+=1
-                LongProp[(i,1)]=4
-
-            #codemean
-            if All_K_Data[(i,0,0)]>0 and All_K_Data[(i,0,0)]<300000:
-                LongProp[(i,2)]=1
-            elif All_K_Data[(i,0,0)]>=300000 and All_K_Data[(i,0,0)]<600000:
-                LongProp[(i,2)]=2
-            elif All_K_Data[(i,0,0)]>=600000 and All_K_Data[(i,0,0)]<603000:
-                LongProp[(i,2)]=3
-            elif All_K_Data[(i,0,0)]>=603000 and All_K_Data[(i,0,0)]<999999:
-                LongProp[(i,2)]=4
-            #pe
-
-            #LongProp[(i,5)]=g_all_result[i]['s_per']
-            if g_all_result[i]['s_per']<0 or g_all_result[i]['s_per']>=100:
-                #counter2[0]+=1
-                LongProp[(i,3)]=1
-            elif g_all_result[i]['s_per']>=0 and g_all_result[i]['s_per']<25:
-                #counter2[1]+=1
-                LongProp[(i,3)]=4
-            elif g_all_result[i]['s_per']>=25 and g_all_result[i]['s_per']<45:
-                #counter2[2]+=1
-                LongProp[(i,3)]=3
-            elif g_all_result[i]['s_per']>45 and g_all_result[i]['s_per']<100:
-                #counter2[3]+=1
-                LongProp[(i,3)]=2
-            #pb
-            #LongProp[(i,6)]=g_all_result[i]['s_pb']
-            if g_all_result[i]['s_pb']<0 or g_all_result[i]['s_pb']>=6:
-                #counter2[0]+=1
-                LongProp[(i,4)]=1
-            elif g_all_result[i]['s_pb']>=0 and g_all_result[i]['s_pb']<2:
-                #counter2[1]+=1
-                LongProp[(i,4)]=4
-            elif g_all_result[i]['s_pb']>=2 and g_all_result[i]['s_pb']<3.5:
-                #counter2[2]+=1
-                LongProp[(i,4)]=3
-            elif g_all_result[i]['s_pb']>3.5 and g_all_result[i]['s_pb']<6:
-                #counter2[3]+=1
-                LongProp[(i,4)]=2
-
-            #st
-
-            if g_all_result[i]['s_stflag']>0:
-                #counter2[0]+=1
-                LongProp[(i,5)]=1
+        #如果当前更新列表和历史数据版本不一致导致数据错位
+        if(zzz!=zzz2 and zzz!=0): 
+            #从历史数据列表中寻找是否有对应值
+            buff=np.argwhere(CodeList==int(zzz))
+            #如果有指则重新定义历史数据位置
+            if(buff!=None):
+                foundindex=int(buff)
+                hisdata_index=foundindex
+                zzz2=All_K_Data[(hisdata_index,0,0)]
+                searchcounter+=1
             else:
-                #counter2[3]+=1
-                LongProp[(i,5)]=2    
-   
-            #stopperiod
-            if All_K_Data[(i,1,(z-100))]==0:
-                LongProp[(i,6)]=3
-            elif All_K_Data[(i,1,(z-1))]==0:
-                LongProp[(i,6)]=2
-            else:
-                LongProp[(i,6)]=1  
+                updatecounter+=1
+                continue
+       
+        #code(index)
+        LongProp[i,0]=zzz2
 
+        #mkt
+        #LongProp[(i,1)]=g_all_result[i]['s_mktcap']
+        if g_all_result[i]['s_mktcap']<400000:
+            counter2[0]+=1
+            LongProp[(i,1)]=1
+        elif g_all_result[i]['s_mktcap']>=400000 and g_all_result[i]['s_mktcap']<800000:
+            counter2[1]+=1
+            LongProp[(i,1)]=2
+        elif g_all_result[i]['s_mktcap']>=800000 and g_all_result[i]['s_mktcap']<2500000:
+            counter2[2]+=1
+            LongProp[(i,1)]=3
+        elif g_all_result[i]['s_mktcap']>=2500000:
+            counter2[3]+=1
+            LongProp[(i,1)]=4
         else:
             wrongconter+=1
-            continue
+
+        #codemean
+        if All_K_Data[hisdata_index,0,0]>0 and All_K_Data[hisdata_index,0,0]<300000:
+            LongProp[(i,2)]=1
+        elif All_K_Data[hisdata_index,0,0]>=300000 and All_K_Data[hisdata_index,0,0]<600000:
+            LongProp[(i,2)]=2
+        elif All_K_Data[hisdata_index,0,0]>=600000 and All_K_Data[hisdata_index,0,0]<603000:
+            LongProp[(i,2)]=3
+        elif All_K_Data[hisdata_index,0,0]>=603000 and All_K_Data[hisdata_index,0,0]<999999:
+            LongProp[(i,2)]=4
+        else:
+            wrongconter+=1
+
+        #pe
+
+        #LongProp[(i,5)]=g_all_result[i]['s_per']
+        if g_all_result[i]['s_per']<0 or g_all_result[i]['s_per']>=100:
+            #counter2[0]+=1
+            LongProp[(i,3)]=1
+        elif g_all_result[i]['s_per']>=0 and g_all_result[i]['s_per']<25:
+            #counter2[1]+=1
+            LongProp[(i,3)]=4
+        elif g_all_result[i]['s_per']>=25 and g_all_result[i]['s_per']<45:
+            #counter2[2]+=1
+            LongProp[(i,3)]=3
+        elif g_all_result[i]['s_per']>45 and g_all_result[i]['s_per']<100:
+            #counter2[3]+=1
+            LongProp[(i,3)]=2
+        else:
+            wrongconter+=1
+
+        #pb
+        #LongProp[(i,6)]=g_all_result[i]['s_pb']
+        if g_all_result[i]['s_pb']<0 or g_all_result[i]['s_pb']>=6:
+            #counter2[0]+=1
+            LongProp[(i,4)]=1
+        elif g_all_result[i]['s_pb']>=0 and g_all_result[i]['s_pb']<2:
+            #counter2[1]+=1
+            LongProp[(i,4)]=4
+        elif g_all_result[i]['s_pb']>=2 and g_all_result[i]['s_pb']<3.5:
+            #counter2[2]+=1
+            LongProp[(i,4)]=3
+        elif g_all_result[i]['s_pb']>3.5 and g_all_result[i]['s_pb']<6:
+            #counter2[3]+=1
+            LongProp[(i,4)]=2
+        else:
+            wrongconter+=1
+
+        #st
+
+        if g_all_result[i]['s_stflag']>0:
+            #counter2[0]+=1
+            LongProp[(i,5)]=1
+        else:
+            #counter2[3]+=1
+            LongProp[(i,5)]=2    
+   
+        #stopperiod
+        if All_K_Data[(hisdata_index,1,(z-100))]==0:
+            LongProp[(i,6)]=3
+        elif All_K_Data[(hisdata_index,1,(z-1))]==0:
+            LongProp[(i,6)]=2
+        else:
+            LongProp[(i,6)]=1  
+        rightcounter+=1
+        hisdata_index+=1
+
+
+    if(wrongconter!=0):
+        print("发现错误")
 
 def CSZL_ShortProp():
     global LongProp
@@ -182,9 +216,10 @@ def CSZL_ShortProp():
     y=All_K_Data.shape[1]    #7
     z=All_K_Data.shape[2]    #50
     
-    target_dateA=20170125
+    target_dateA=20171023
     target_dateB=20180125
 
+    #有效数据
     Available=0
 
     countershape=[0,0,0,0,0,0,0,0,0,0,0,0,0]
@@ -192,11 +227,12 @@ def CSZL_ShortProp():
     counter3=[0,0,0,0]
 
 
-    #三天前 两天前 一天前 [0变动和 1变动计数 2前两项商 3排名]
+    #三天前 两天前 一天前 [0变动和 1变动计数 2前两项商 3排名 4涨停次数 5跌停次数]
     Ktype_counter=np.zeros((13,13,13,8),dtype=float)
     Ktype_sorter=np.zeros((12*12*12,2),dtype=float)
 
-    cur_shape=0
+    
+    #cur_shape=0
     last_shape=0
     last_shape2=0
     last_shape3=0
@@ -209,202 +245,244 @@ def CSZL_ShortProp():
     zzzcounter=0
 
 
+    rightcounter=0
+    searchcounter=0
+    updatecounter=0
+
+
+    #读取历史数据的位置
+    hisdata_index=1
+    #取出历史数据名称列表用于后面找不到位置时进行的搜索
+    CodeList=All_K_Data[:,0,0]
+
     for i in range(x):    
         temp=str(g_all_result[i]['s_code'],"utf-8")
         zzz=float(temp)
-        zzz2=All_K_Data[(i,0,0)]
-        #保证相同项
+        zzz2=All_K_Data[(hisdata_index,0,0)]
+
+        #如果当前更新列表和历史数据版本不一致导致数据错位
+        if(zzz!=zzz2 and zzz!=0): 
+            #从历史数据列表中寻找是否有对应值
+            buff=np.argwhere(CodeList==int(zzz))
+            #如果有指则重新定义历史数据位置
+            if(buff!=None):
+                foundindex=int(buff)
+                hisdata_index=foundindex
+                zzz2=All_K_Data[(hisdata_index,0,0)]
+                searchcounter+=1
+            else:
+                updatecounter+=1
+                continue
+
 
         #countershape.clear()
         #countershape=[0,0,0,0,0,0,0,0,0,0,0,0,0]
 
-        if(zzz==zzz2):
-            #code(index)
-            ShortProp[i,0]=All_K_Data[i,0,0]
 
-            short_startflag=False
-            #得到最后的结果
-            Close=0
+        #code(index)
+        ShortProp[i,0]=zzz
 
-            #波动率计数
-            sectionrate=0
-            sectionratecounter=0
+        short_startflag=False
+        #得到最后的结果
+        Close=0
 
-            #初始化收盘价以及3日形态计数
-            last_close3=0
-            last_close2=0
-            last_close=0
+        #波动率计数
+        #sectionrate=0
+        #sectionratecounter=0
+        sectionratecounter2=Z_Counter()
 
-            last_shape4=0
-            last_shape3=0
-            last_shape2=0
-            last_shape=0
+        #初始化收盘价以及3日形态计数
+        last_close3=0
+        last_close2=0
+        last_close=0
 
-            for ii in range(z):
+        last_shape4=0
+        last_shape3=0
+        last_shape2=0
+        last_shape=0
 
-                #DateA to DateB 's result
-                if All_K_Data[(i,6,ii)]==target_dateA:
-                    short_startflag=True
-                    if(All_K_Data[(i,3,ii)]==All_K_Data[(i,1,ii)]and All_K_Data[(i,3,ii)]==All_K_Data[(i,2,ii)]and All_K_Data[(i,3,ii)]==All_K_Data[(i,4,ii)]):
-                        #zzz=HistoryLoaded[(i,0,0)]
-                        ShortProp[(i,1)]=-1
-                        break
-                    
-                    #ShortProp[(i,9)]=HistoryLoaded[(i,3,ii)]
-                    ShortProp[(i,8)]=All_K_Data[(i,3,ii)]
-                    Close=All_K_Data[(i,3,ii)]
-                elif All_K_Data[(i,6,ii)]==target_dateB and Close!=0:
 
-                    if(All_K_Data[(i,3,ii)]==All_K_Data[(i,1,ii)]and All_K_Data[(i,3,ii)]==All_K_Data[(i,2,ii)]and All_K_Data[(i,3,ii)]==All_K_Data[(i,4,ii)]):
-                        zzz=All_K_Data[(i,0,0)]
-                        ShortProp[(i,1)]=-2
-                        break
+        if(zzz==408):
+            sdfe=1
 
-                    ShortProp[(i,2)]=((All_K_Data[(i,3,ii)]-Close)/Close)*100
-                    ShortProp[(i,9)]=All_K_Data[(i,3,ii)]        
-                    ShortProp[(i,1)]=1
-                    Available+=1
+        for ii in range(z):
+
+            #DateA to DateB 's result
+            if All_K_Data[(hisdata_index,6,ii)]>=target_dateA and short_startflag==False:
+                
+                #如果开始这天是无意义的（一字涨停或跌停）一天，记录ShortProp[(i,1)]=-1
+                if(All_K_Data[(hisdata_index,3,ii)]==All_K_Data[(hisdata_index,1,ii)]and All_K_Data[(hisdata_index,3,ii)]==All_K_Data[(hisdata_index,2,ii)]and All_K_Data[(hisdata_index,3,ii)]==All_K_Data[(hisdata_index,4,ii)]):
+                    continue
+
+                short_startflag=True
+
+                ShortProp[(i,8)]=All_K_Data[(hisdata_index,3,ii)]
+                Close=All_K_Data[(hisdata_index,3,ii)]
+            elif All_K_Data[(hisdata_index,6,ii)]>=target_dateB and Close!=0:
+                #如果结束这天是无意义的（一字涨停或跌停）一天，记录ShortProp[(i,1)]=-2
+                if(All_K_Data[(hisdata_index,3,ii)]==All_K_Data[(hisdata_index,1,ii)]and All_K_Data[(hisdata_index,3,ii)]==All_K_Data[(hisdata_index,2,ii)]and All_K_Data[(hisdata_index,3,ii)]==All_K_Data[(hisdata_index,4,ii)]):
+                    zzz=All_K_Data[(hisdata_index,0,0)]
+                    ShortProp[(i,1)]=-2
                     break
 
-                if(short_startflag):
-                    cur=All_K_Data[(i,1,ii)]
-                    if cur==0:
-                        break
+                ShortProp[(i,2)]=((All_K_Data[(hisdata_index,3,ii)]-Close)/Close)*100
+                ShortProp[(i,9)]=All_K_Data[(hisdata_index,3,ii)]        
+                ShortProp[(i,1)]=1
+                Available+=1
+                break
+
+            if(short_startflag):
+                #获取当日开盘价
+                cur=All_K_Data[(hisdata_index,1,ii)]
+                #如果当日开盘价为0退出循环
+                if cur==0:
+                    break
 
 
 
-                    #high=HistoryLoaded[(i,2,ii)]-HistoryLoaded[(i,1,ii)]
-                    whole=All_K_Data[(i,3,ii)]-All_K_Data[(i,1,ii)]
-                    #low=HistoryLoaded[(i,4,ii)]-HistoryLoaded[(i,1,ii)]
+                #实体长度
+                whole=All_K_Data[(hisdata_index,3,ii)]-All_K_Data[(hisdata_index,1,ii)]
+                #high=HistoryLoaded[(i,2,ii)]-HistoryLoaded[(i,1,ii)]
+                #low=HistoryLoaded[(i,4,ii)]-HistoryLoaded[(i,1,ii)]
                     
+                #最高价与收盘价的差redline，与开盘价的差redline2
+                redline=All_K_Data[(hisdata_index,2,ii)]-All_K_Data[(hisdata_index,3,ii)]
+                redline2=All_K_Data[(hisdata_index,2,ii)]-All_K_Data[(hisdata_index,1,ii)]
+                #最低价与收盘价的差greenline，与开盘价的差greenline2
+                greenline=All_K_Data[(hisdata_index,4,ii)]-All_K_Data[(hisdata_index,3,ii)]
+                greenline2=All_K_Data[(hisdata_index,4,ii)]-All_K_Data[(hisdata_index,1,ii)]
+                 
+                #根据上述五个信息分析线形态共分12种，见excel表
+                response_rate=0.005
+                cur_shape=0
 
-                    redline=All_K_Data[(i,2,ii)]-All_K_Data[(i,3,ii)]
-                    redline2=All_K_Data[(i,2,ii)]-All_K_Data[(i,1,ii)]
-
-                    greenline=All_K_Data[(i,4,ii)]-All_K_Data[(i,3,ii)]
-                    greenline2=All_K_Data[(i,4,ii)]-All_K_Data[(i,1,ii)]
-
-                    section=All_K_Data[(i,2,ii)]-All_K_Data[(i,4,ii)]
-
-                    vol=All_K_Data[(i,5,ii)]
-                    #区间波动率计数
-                    sectionrate+=(section/cur)
-                    sectionratecounter+=1
-
-                   
-                    #找形态
-                    response_rate=0.005
-                    cur_shape=0
-
-                    if((whole/cur)>response_rate):
-                        if((redline/cur)>response_rate):
-                            if((greenline2/cur)<(-response_rate)):
-                                cur_shape=4
-                            else:
-                                cur_shape=5
-                        elif((greenline2/cur)<-response_rate):
-                            cur_shape=2
+                if((whole/cur)>response_rate):
+                    if((redline/cur)>response_rate):
+                        if((greenline2/cur)<(-response_rate)):
+                            cur_shape=4
                         else:
-                            cur_shape=1
-
-                    elif ((whole/cur)<(-response_rate)):
-                        if((redline2/cur)>response_rate):
-                            if((greenline/cur)<(-response_rate)):
-                                cur_shape=9
-                            else:
-                                cur_shape=11
-                        elif((greenline/cur)<(-response_rate)):
-                            cur_shape=8
-                        else:
-                            cur_shape=12
+                            cur_shape=5
+                    elif((greenline2/cur)<-response_rate):
+                        cur_shape=2
                     else:
-                        if((redline2/cur)>response_rate):
-                            if((greenline2/cur)<(-response_rate)):
-                                cur_shape=6
-                            else:
-                                cur_shape=10
-                        elif((greenline2/cur)<(-response_rate)):
-                            cur_shape=3
+                        cur_shape=1
+
+                elif ((whole/cur)<(-response_rate)):
+                    if((redline2/cur)>response_rate):
+                        if((greenline/cur)<(-response_rate)):
+                            cur_shape=9
                         else:
-                            cur_shape=7                     
-
-                    #单日
-                    '''
-                    if(last_close!=0 and last_shape2!=0):
-                        if((last_close2-last_close)/last_close2<0.095 and (last_close2-last_close)/last_close2>-0.095):
-
-                            plustest=((HistoryLoaded[(i,3,ii)]-last_close)/last_close)
-
-                            if(plustest>0.1):
-                                zzzzzzz=0
-
-                            Ktype_counter[last_shape3,last_shape2,last_shape,1]+=plustest
-                            Ktype_counter[last_shape3,last_shape2,last_shape,0]+=1
-                            if(last_shape3==9 and last_shape2==5 and last_shape==4):
-                                zzzcounter+=1
-                    '''
-
-                    #两日
-                    if(last_close3!=0 and last_shape4!=0):
-                        if((last_close3-last_close2)/last_close3<0.095 and (last_close3-last_close2)/last_close3>-0.095):
-
-                            plustest=((All_K_Data[(i,3,ii)]-last_close2)/last_close2)
-
-                            if(plustest>0.22):
-                                zzzzzzz=0
-
-                            Ktype_counter[last_shape4,last_shape3,last_shape2,1]+=plustest
-                            Ktype_counter[last_shape4,last_shape3,last_shape2,0]+=1
-
-                            #用于测试
-                            if(last_shape3==9 and last_shape2==5 and last_shape==4):
-                                zzzcounter+=1
-
-
-                    last_close3=last_close2
-                    last_close2=last_close
-                    last_close=All_K_Data[(i,3,ii)]
-
-                    last_shape4=last_shape3
-                    last_shape3=last_shape2
-                    last_shape2=last_shape
-                    last_shape=cur_shape
-
-                    '''
-
-                    countershape[int(ShortProp[(i,3)])]+=1
-                    countershape[0]+=1
-
-                    if whole>=0:
-                        ShortProp[(i,3)]=1
-                        if (high-whole)/cur>0.02:
-                            ShortProp[(i,3)]=2
+                            cur_shape=11
+                    elif((greenline/cur)<(-response_rate)):
+                        cur_shape=8
                     else:
-                        ShortProp[(i,3)]=3
-                        if (low-whole)/cur<-0.02:
-                            ShortProp[(i,3)]=4
-                    '''
-            #波动率
-            if(sectionratecounter>0):
-                sectioncal=sectionrate/sectionratecounter
-                if(sectioncal>0.045):
-                    ShortProp[(i,4)]=1
-                    #counter3[0]+=1
-                elif(sectioncal>0.03):
-                    ShortProp[(i,4)]=2
-                    #counter3[1]+=1
-                elif(sectioncal>0.02):
-                    ShortProp[(i,4)]=3
-                    #counter3[2]+=1
+                        cur_shape=12
                 else:
-                    ShortProp[(i,4)]=4
-                    #counter3[3]+=1
+                    if((redline2/cur)>response_rate):
+                        if((greenline2/cur)<(-response_rate)):
+                            cur_shape=6
+                        else:
+                            cur_shape=10
+                    elif((greenline2/cur)<(-response_rate)):
+                        cur_shape=3
+                    else:
+                        cur_shape=7
 
 
-            dsfsf=2
+                #当日成交
+                vol=All_K_Data[(hisdata_index,5,ii)]
+            
+                #震荡区间(当日最高减去当然最低)
+                section=All_K_Data[(hisdata_index,2,ii)]-All_K_Data[(hisdata_index,4,ii)]
+                #区间波动率计数
+                #sectionrate+=(section/cur)
+                #sectionratecounter+=1
+                sectionratecounter2.Add((section/cur))
+                #kkds=sectionratecounter2.Sum()
 
-        else:
-            continue
+
+                #单日
+                '''
+                这里假设的情况是知道 第一日形态 第二日形态 第三日形态(且次日非涨停跌停) 
+                当前日为第四日，将当日收盘减去上一日收盘得到的结果（在第三日最后一分钟买入，第四日最后一分钟卖出）
+                '''
+                #前三日形态不为0(有值)
+                if(last_shape3!=0):
+                    #上个交易日非涨停或跌停(如果涨停或跌停则不记录)
+                    if((last_close2-last_close)/last_close2<0.095 and (last_close2-last_close)/last_close2>-0.095):
+                        #记录结果
+                        plusbuff=((All_K_Data[(hisdata_index,3,ii)]-last_close)/last_close)
+
+                        if(plusbuff>0.095):
+                            Ktype_counter[last_shape3,last_shape2,last_shape,4]+=1
+                        elif(plusbuff<-0.095):
+                            Ktype_counter[last_shape3,last_shape2,last_shape,5]+=1
+
+                        Ktype_counter[last_shape3,last_shape2,last_shape,1]+=plusbuff
+                        Ktype_counter[last_shape3,last_shape2,last_shape,0]+=1
+                        if(last_shape3==3 and last_shape2==7 and last_shape==6):
+                            zzzcounter+=1
+                
+
+                #两日
+                '''
+                if(last_close3!=0 and last_shape4!=0):
+                    if((last_close3-last_close2)/last_close3<0.095 and (last_close3-last_close2)/last_close3>-0.095):
+
+                        plustest=((All_K_Data[(hisdata_index,3,ii)]-last_close2)/last_close2)
+
+                        if(plustest>0.22):
+                            zzzzzzz=0
+
+                        Ktype_counter[last_shape4,last_shape3,last_shape2,1]+=plustest
+                        Ktype_counter[last_shape4,last_shape3,last_shape2,0]+=1
+
+                        #用于测试
+                        if(last_shape3==9 and last_shape2==5 and last_shape==4):
+                            zzzcounter+=1
+                '''
+
+                last_close3=last_close2
+                last_close2=last_close
+                last_close=All_K_Data[(hisdata_index,3,ii)]
+
+                last_shape4=last_shape3
+                last_shape3=last_shape2
+                last_shape2=last_shape
+                last_shape=cur_shape
+
+                '''
+
+                countershape[int(ShortProp[(i,3)])]+=1
+                countershape[0]+=1
+
+                if whole>=0:
+                    ShortProp[(i,3)]=1
+                    if (high-whole)/cur>0.02:
+                        ShortProp[(i,3)]=2
+                else:
+                    ShortProp[(i,3)]=3
+                    if (low-whole)/cur<-0.02:
+                        ShortProp[(i,3)]=4
+                '''
+        #波动率
+        if(sectionratecounter2.Sum()>0):
+            sectioncal=sectionratecounter2.Average()
+            if(sectioncal>0.045):
+                ShortProp[(i,4)]=1
+                #counter3[0]+=1
+            elif(sectioncal>0.03):
+                ShortProp[(i,4)]=2
+                #counter3[1]+=1
+            elif(sectioncal>0.02):
+                ShortProp[(i,4)]=3
+                #counter3[2]+=1
+            else:
+                ShortProp[(i,4)]=4
+                #counter3[3]+=1
+
+        hisdata_index+=1
+
 
     for i in range(1,13):
         for ii in range(1,13):
@@ -420,19 +498,19 @@ def CSZL_ShortProp():
 
                     if(Ktype_counter[i,ii,iii,2]>0.005 and Ktype_counter[i,ii,iii,0]>100):
                         Ktype_counter[i,ii,iii,3]=3
-                        #print("xxxx%6.4f %4d " % (Ktype_counter[i,ii,iii,2],Ktype_counter[i,ii,iii,0]),end="")
+                        print("xxxx%6.4f %4d " % (Ktype_counter[i,ii,iii,2],Ktype_counter[i,ii,iii,0]),end="")
                     elif(Ktype_counter[i,ii,iii,2]<-0.01):
                         Ktype_counter[i,ii,iii,3]=0
-                        #print("oo%6.4f %4d " % (Ktype_counter[i,ii,iii,2],Ktype_counter[i,ii,iii,0]),end="")
+                        print("oo%6.4f %4d " % (Ktype_counter[i,ii,iii,2],Ktype_counter[i,ii,iii,0]),end="")
                     else:
                         Ktype_counter[i,ii,iii,3]=-3
-                        #print("  %6.4f %4d " % (Ktype_counter[i,ii,iii,2],Ktype_counter[i,ii,iii,0]),end="")                        
+                        print("  %6.4f %4d " % (Ktype_counter[i,ii,iii,2],Ktype_counter[i,ii,iii,0]),end="")                        
 
                 else:
-                    #print("%8.4f %4d " % (0,0),end="")
+                    print("%8.4f %4d " % (0,0),end="")
                     Ktype_counter[i,ii,iii,3]=-1
-            #print("\n")
-        #print("\n") 
+            print("\n")
+        print("\n") 
     a1=Ktype_sorter[:,0]
     a2=np.argsort(a1)
     a3=np.argsort(a1)
@@ -450,7 +528,7 @@ def CSZL_ShortProp():
                 #zz2=(int)((sdfsdf)/(12*12))
                 #zz3=(int)((sdfsdf-zz2*12*12)/12)
                 #zz4=(int)(sdfsdf-zz2*12*12-zz3*12)
-                #print("%4.4f %4d " % (Ktype_counter[i,ii,iii,2],cur_rank),end="")
+                print("%4.4f %4d " % (Ktype_counter[i,ii,iii,2],cur_rank),end="")
 
             print("\n")
         print("\n") 
@@ -463,6 +541,31 @@ def CSZL_ShortProp():
     np.save(txtFileA, Ktype_counter)
 
     zzzzz=1
+
+class Z_Counter(object):
+    inner_counter=0
+    inner_sum=0
+
+    #def __init__(self):
+        #pass
+
+    def Add(self,num=0):
+        self.inner_sum+=num
+        self.inner_counter+=1
+    def Sum(self):
+        return self.inner_sum
+    def Average(self):
+        if(self.inner_counter!=0):
+            return self.inner_sum/self.inner_counter
+        return (0)
+
+    def Count(self):
+        return self.inner_counter
+
+    def Clr(self):
+        self.inner_counter=0
+        self.inner_sum=0
+
 
 def CSZL_TrainValueCalNEW(InputDataLong,InputDataShort):
 
@@ -535,6 +638,13 @@ def CSZL_TrainDataSave():
 
 
 def CSZL_SecAnalyseNew():
+    '''
+    使用secdata的逻辑
+
+
+    '''    
+
+
     #开始更新sec逻辑
     SecUse=False
     SecUseB=True
@@ -710,7 +820,6 @@ def CSZL_TrainMainNEW(g_all_resultin):
     #初始化训练周期
     TrainDate=CSZL_TrainInitNEW()
 
-    CSZL_SecAnalyseNew()
 
     #初始化长期属性
     CSZL_LongProp()
@@ -718,7 +827,7 @@ def CSZL_TrainMainNEW(g_all_resultin):
     #初始化短期属性
     CSZL_ShortProp()
 
-
+    CSZL_SecAnalyseNew()
     #TrainInput_test(ShortProp)
 
     A,B=CSZL_TrainValueCalNEW(LongProp,ShortProp)

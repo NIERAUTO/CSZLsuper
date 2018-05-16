@@ -159,7 +159,7 @@ def CSZL_superINFOupdate():
 
                 if(cur_long>1):
                     for i in range(cur_long-1):
-                        print("NO%d:%s with score %f \n"%(i+1,str(g_part_result[cur_long-1-i]['s_Cname'],"utf-8"),str(g_part_result[cur_long-1-i]['s_code'],"utf-8"),g_part_result[cur_long-1-i]['s_zValue']))
+                        print("NO%d:%s %s with score %f \n"%(i+1,str(g_part_result[cur_long-1-i]['s_Cname'],"utf-8"),str(g_part_result[cur_long-1-i]['s_code'],"utf-8"),g_part_result[cur_long-1-i]['s_zValue']))
 
             elif INFO_part_routine==(-1):
                 print ("PARTroutine : Wrong")
@@ -798,16 +798,19 @@ def CSZL_HistoryDataAnalysis():
         #CSZLsuperGET.HistoryDataGet("2017-04-04",10)
         #HistoryDataInit()
 
-        txtFileA = cwd + '\\output\\KtypeThree.npy'
-        KtypeThreeLoaded=np.load(txtFileA)
+        #读取历史分析的k线模块数据
+        TempPath = cwd + '\\output\\KtypeThree.npy'
+        KtypeThreeLoaded=np.load(TempPath)
 
-        txtFile1 = cwd + '\\data\\'+'History_data.npy'
-        Last20_K_Data=np.load(txtFile1)
+        #读取刚刚更新的20日内的k线数据
+        TempPath = cwd + '\\data\\'+'History_data.npy'
+        Last20_K_Data=np.load(TempPath)
 
+        #读取长策略和短策略联合得出的分析结果
+        TempPath = cwd + '\\output\\'+'HisAna.npy'
+        HistoryAnaLoaded=np.load(TempPath)
 
-        txtFile1 = cwd + '\\output\\'+'HisAna.npy'
-        HistoryAnaLoaded=np.load(txtFile1)
-
+        #将读取的历史分析数据和进20日数据进行匹配分析
 
         x=len(g_all_result)         #4000
         y=Last20_K_Data.shape[1]    #7
@@ -966,7 +969,8 @@ def HistoryDataGet(
     截止日期("xxxx-xx-xx")
     获取天数(int)
 
-    实际返回表格为截止日期前指定交易天数的数据,
+    获取数据为截止日期前指定交易天数的数据,
+    保存到data/History_data中无返回指
 
     """
     days2=Datas*1.5+10
@@ -1032,7 +1036,7 @@ def HistoryDataGet(
                 print (Exception,":",ex)
 
         cwd = os.getcwd()
-        txtFile = cwd + '\\data\\'+'History_data2.npy'
+        txtFile = cwd + '\\data\\'+'History_data.npy'
         np.save(txtFile, HistoryDataSave)
 
 def CSZL_SecretDataInit():
