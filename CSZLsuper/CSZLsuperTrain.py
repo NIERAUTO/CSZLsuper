@@ -216,7 +216,7 @@ def CSZL_ShortProp():
     y=All_K_Data.shape[1]    #7
     z=All_K_Data.shape[2]    #50
     
-    target_dateA=20171023
+    target_dateA=20160108
     target_dateB=20180125
 
     #有效数据
@@ -227,9 +227,10 @@ def CSZL_ShortProp():
     counter3=[0,0,0,0]
 
 
-    #三天前 两天前 一天前 [0变动和 1变动计数 2前两项商 3排名 4涨停次数 5跌停次数]
-    Ktype_counter=np.zeros((13,13,13,8),dtype=float)
-    Ktype_sorter=np.zeros((12*12*12,2),dtype=float)
+    #三天前 两天前 一天前 [0变动和 1变动计数 2reserve 3reserve 4商排名 5涨停次数 6涨停次数排名 7跌停次数 8跌停次数排名 9reserve]
+    Ktype_counter=np.zeros((13,13,13,10),dtype=float)
+    #第二位为0是涨幅排序，1是涨停排序，2是跌停排序
+    Ktype_sorter=np.zeros((12*12*12,4),dtype=float)
 
     
     #cur_shape=0
@@ -255,7 +256,10 @@ def CSZL_ShortProp():
     #取出历史数据名称列表用于后面找不到位置时进行的搜索
     CodeList=All_K_Data[:,0,0]
 
-    for i in range(x):    
+    for i in range(x):
+        if(i%30==0):
+            print(i)
+  
         temp=str(g_all_result[i]['s_code'],"utf-8")
         zzz=float(temp)
         zzz2=All_K_Data[(hisdata_index,0,0)]
@@ -306,7 +310,7 @@ def CSZL_ShortProp():
             sdfe=1
 
         for ii in range(z):
-
+            
             #DateA to DateB 's result
             if All_K_Data[(hisdata_index,6,ii)]>=target_dateA and short_startflag==False:
                 
@@ -414,9 +418,9 @@ def CSZL_ShortProp():
                         plusbuff=((All_K_Data[(hisdata_index,3,ii)]-last_close)/last_close)
 
                         if(plusbuff>0.095):
-                            Ktype_counter[last_shape3,last_shape2,last_shape,4]+=1
-                        elif(plusbuff<-0.095):
                             Ktype_counter[last_shape3,last_shape2,last_shape,5]+=1
+                        elif(plusbuff<-0.095):
+                            Ktype_counter[last_shape3,last_shape2,last_shape,7]+=1
 
                         Ktype_counter[last_shape3,last_shape2,last_shape,1]+=plusbuff
                         Ktype_counter[last_shape3,last_shape2,last_shape,0]+=1
@@ -441,11 +445,11 @@ def CSZL_ShortProp():
                         if(last_shape3==9 and last_shape2==5 and last_shape==4):
                             zzzcounter+=1
                 '''
-
+                #更新前几日的收盘价
                 last_close3=last_close2
                 last_close2=last_close
                 last_close=All_K_Data[(hisdata_index,3,ii)]
-
+                #更新前几日的形态
                 last_shape4=last_shape3
                 last_shape3=last_shape2
                 last_shape2=last_shape
@@ -490,12 +494,17 @@ def CSZL_ShortProp():
 
     
                 #分类
-                if(Ktype_counter[i,ii,iii,1]!=0):    
-                    Ktype_counter[i,ii,iii,2]= Ktype_counter[i,ii,iii,1]/Ktype_counter[i,ii,iii,0]
+                if(Ktype_counter[i,ii,iii,1]!=0):
 
-                    #准备排序
-                    Ktype_sorter[((i-1)*12*12+(ii-1)*12+iii-1),0]=Ktype_counter[i,ii,iii,2];
+                    #准备排序，由于一共有12x12x12种组合，将前三日对应到排序数组中
+                    #第四日平均涨幅
+                    Ktype_sorter[((i-1)*12*12+(ii-1)*12+iii-1),0]=Ktype_counter[i,ii,iii,1]/Ktype_counter[i,ii,iii,0];
+                    #第四日涨停概率
+                    Ktype_sorter[((i-1)*12*12+(ii-1)*12+iii-1),1]=Ktype_counter[i,ii,iii,5]/Ktype_counter[i,ii,iii,0];
+                    #第四日跌停概率
+                    Ktype_sorter[((i-1)*12*12+(ii-1)*12+iii-1),2]=Ktype_counter[i,ii,iii,7]/Ktype_counter[i,ii,iii,0];
 
+                    '''
                     if(Ktype_counter[i,ii,iii,2]>0.005 and Ktype_counter[i,ii,iii,0]>100):
                         Ktype_counter[i,ii,iii,3]=3
                         print("xxxx%6.4f %4d " % (Ktype_counter[i,ii,iii,2],Ktype_counter[i,ii,iii,0]),end="")
@@ -505,33 +514,53 @@ def CSZL_ShortProp():
                     else:
                         Ktype_counter[i,ii,iii,3]=-3
                         print("  %6.4f %4d " % (Ktype_counter[i,ii,iii,2],Ktype_counter[i,ii,iii,0]),end="")                        
-
+                    '''
                 else:
-                    print("%8.4f %4d " % (0,0),end="")
-                    Ktype_counter[i,ii,iii,3]=-1
-            print("\n")
-        print("\n") 
+                    pass
+                    #print("%8.4f %4d " % (0,0),end="")
+                    #Ktype_counter[i,ii,iii,3]=-1
+            #print("\n")
+        #print("\n") 
+
+    #从排序数组中取出
     a1=Ktype_sorter[:,0]
+    b1=Ktype_sorter[:,1]
+    c1=Ktype_sorter[:,2]
+
+    #a2是排序后a1的标号
     a2=np.argsort(a1)
     a3=np.argsort(a1)
+    b2=np.argsort(b1)
+    b3=np.argsort(b1)
+    c2=np.argsort(c1)
+    c3=np.argsort(c1)
+
 
     #序号与数字重排(这边居然搞了20分钟才搞清楚关系，也不知道搞没搞最简，先这样了)
+    #迷之操作
     for i in range(len(a2)):
         a3[a2[i]]=i
-
+        b3[b2[i]]=i       
+        c3[c2[i]]=i
 
     for i in range(1,13):
         for ii in range(1,13):
             for iii in range(1,13):
+                #反向取出迷之操作过的数组就是当前i ii iii所对应的rank，这个rank越大，数值越大例如+0.05为1728 
                 cur_rank=a3[((i-1)*12*12+(ii-1)*12+iii-1)]
                 Ktype_counter[i,ii,iii,4]=cur_rank
-                #zz2=(int)((sdfsdf)/(12*12))
-                #zz3=(int)((sdfsdf-zz2*12*12)/12)
-                #zz4=(int)(sdfsdf-zz2*12*12-zz3*12)
-                print("%4.4f %4d " % (Ktype_counter[i,ii,iii,2],cur_rank),end="")
 
-            print("\n")
-        print("\n") 
+                cur_rank2=b3[((i-1)*12*12+(ii-1)*12+iii-1)]
+                Ktype_counter[i,ii,iii,6]=cur_rank2
+
+                cur_rank3=c3[((i-1)*12*12+(ii-1)*12+iii-1)]
+                Ktype_counter[i,ii,iii,8]=cur_rank3
+
+                #print("%4.4f &4d %4d " % (Ktype_counter[i,ii,iii,5],cur_rank2),end="")
+                #print("%4d %4d %4d " % (Ktype_counter[i,ii,iii,5],Ktype_counter[i,ii,iii,0],cur_rank2),end="")
+
+            #print("\n")
+        #print("\n") 
 
     #print(a1)
 

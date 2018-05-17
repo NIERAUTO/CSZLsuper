@@ -19,6 +19,8 @@ import math
 #正则表达式
 import re
 
+import ctypes
+
 z_init_nplist=[]
 g_all_result=[] #实时全局数据表
 g_part_result=[]
@@ -791,6 +793,8 @@ def CSZL_HistoryDataAnalysis():
     cwd = os.getcwd()
     #初始化历史数据
     
+    z_three_test()
+
     if(CSZLsuper.G_mode['K_Data_UpdateModeFlag']):
 
         #默认获取20天的数据
@@ -821,11 +825,15 @@ def CSZL_HistoryDataAnalysis():
                 temp=str(g_all_result[i]['s_code'],"utf-8")
                 zzz=float(temp)
                 zzz2=Last20_K_Data[(i,0,0)]
+
+                assert zzz==zzz2
+
                 if(zzz==zzz2):
                     if(Last20_K_Data[(i,0,0)]!=0):
                         edcx=1
 
                 else:
+                    #这里讲道理不会走到（用assert试试看）
                     continue
 
                 g_all_info[i]['s_HisOutput1']=HistoryAnaLoaded[i,2]
@@ -859,6 +867,84 @@ def CSZL_HistoryDataAnalysis():
 
 
     zzzz=1
+
+
+
+  
+STD_INPUT_HANDLE = -10  
+STD_OUTPUT_HANDLE= -11  
+STD_ERROR_HANDLE = -12  
+  
+FOREGROUND_BLACK = 0x0  
+FOREGROUND_BLUE = 0x01 # text color contains blue.  
+FOREGROUND_GREEN= 0x02 # text color contains green.  
+FOREGROUND_RED = 0x04 # text color contains red.  
+FOREGROUND_INTENSITY = 0x08 # text color is intensified.  
+  
+BACKGROUND_BLUE = 0x10 # background color contains blue.  
+BACKGROUND_GREEN= 0x20 # background color contains green.  
+BACKGROUND_RED = 0x40 # background color contains red.  
+BACKGROUND_INTENSITY = 0x80 # background color is intensified.  
+  
+class Color:  
+    ''''' See http://msdn.microsoft.com/library/default.asp?url=/library/en-us/winprog/winprog/windows_api_reference.asp 
+    for information on Windows APIs.'''  
+    std_out_handle = ctypes.windll.kernel32.GetStdHandle(STD_OUTPUT_HANDLE)  
+      
+    def set_cmd_color(self, color, handle=std_out_handle):  
+        """(color) -> bit 
+        Example: set_cmd_color(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY) 
+        """  
+        bool = ctypes.windll.kernel32.SetConsoleTextAttribute(handle, color)  
+        return bool  
+      
+    def reset_color(self):  
+        self.set_cmd_color(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE)  
+      
+    def print_red_text(self, print_text):  
+        self.set_cmd_color(FOREGROUND_RED | FOREGROUND_INTENSITY)  
+        print(print_text)  
+        self.reset_color()  
+          
+    def print_green_text(self, print_text):  
+        self.set_cmd_color(FOREGROUND_GREEN | FOREGROUND_INTENSITY)  
+        print(print_text)  
+        self.reset_color()  
+      
+    def print_blue_text(self, print_text):   
+        self.set_cmd_color(FOREGROUND_BLUE | FOREGROUND_INTENSITY)  
+        print(print_text) 
+        self.reset_color()  
+            
+    def print_red_text_with_blue_bg(self, print_text):  
+        self.set_cmd_color(FOREGROUND_RED | FOREGROUND_INTENSITY| BACKGROUND_BLUE | BACKGROUND_INTENSITY)  
+        print(print_text) 
+        self.reset_color()  
+
+def z_three_test():
+    cwd = os.getcwd()
+
+    clr = Color()
+
+    TempPath = cwd + '\\output\\KtypeThree.npy'
+    Ktype_counter=np.load(TempPath)
+    for i in range(1,13):
+        for ii in range(1,13):
+            for iii in range(1,13):
+                
+                #print("%4.4f &4d %4d " % (Ktype_counter[i,ii,iii,5],cur_rank2),end="")
+                if(Ktype_counter[i,ii,iii,5]>=20 and Ktype_counter[i,ii,iii,7]<=20):        
+                    print("**",end="")
+
+                print("%4d %2d %4d " % (Ktype_counter[i,ii,iii,0],Ktype_counter[i,ii,iii,5],Ktype_counter[i,ii,iii,7]),end="")
+
+            print("\n")
+        zzz=str(i)
+        clr.print_red_text(zzz)
+        print("\n") 
+        
+    sadfiosjdf=2
+
 
 
 def HistoryDataInit():
