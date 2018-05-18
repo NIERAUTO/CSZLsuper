@@ -161,7 +161,16 @@ def CSZL_superINFOupdate():
 
                 if(cur_long>1):
                     for i in range(cur_long-1):
-                        print("NO%d:%s %s with score %f \n"%(i+1,str(g_part_result[cur_long-1-i]['s_Cname'],"utf-8"),str(g_part_result[cur_long-1-i]['s_code'],"utf-8"),g_part_result[cur_long-1-i]['s_zValue']))
+                        #print("NO%d:%s %s with score %f \n"%(i+1,str(g_part_result[cur_long-1-i]['s_Cname'],"utf-8"),str(g_part_result[cur_long-1-i]['s_code'],"utf-8"),g_part_result[cur_long-1-i]['s_zValue']))
+                        print("NO%d:%s %s with score %f,战力：%d 准确率：%d 超神次数：%d 超鬼次数：%d \n"%(i+1,
+                        str(g_part_result[cur_long-1-i]['s_Cname'],"utf-8"),
+                        str(g_part_result[cur_long-1-i]['s_code'],"utf-8"),
+                        g_part_result[cur_long-1-i]['s_zValue'],
+                        g_all_info[cur_long-1-i]['s_HisOutput1'],
+                        g_all_info[cur_long-1-i]['K_three_amount'],
+                        g_all_info[cur_long-1-i]['K_three_super'],
+                        g_all_info[cur_long-1-i]['K_three_superwrong']
+                        ))
 
             elif INFO_part_routine==(-1):
                 print ("PARTroutine : Wrong")
@@ -218,7 +227,7 @@ def CSZL_superinit():
     #初始化typedef s_high
     z_useful_stock_type=np.dtype(([('s_key', int), ('s_code', 'S6'), ('s_plus', float),('s_now', float),
     ('s_last', float),('s_high', float),('s_low', float),
-    ('s_stflag', float),('s_s2', float),('s_s3', float),('s_s4', float),('s_s5', float),
+    ('s_stflag', float),('K_three_amount', float),('K_three_super', float),('K_three_superwrong', float),('s_s5', float),
     ('s_b1', float),('s_b2', float),('s_b3', float),('s_b4', float),('s_b5', float),
     ('s_vol', float),('s_wholecap', float),('s_mktcap', float),('s_HisOutput1', float),
     ('s_InFastUpdataList', int),('s_counter', int),('s_useful', int),('s_zValue', float),
@@ -793,7 +802,7 @@ def CSZL_HistoryDataAnalysis():
     cwd = os.getcwd()
     #初始化历史数据
     
-    z_three_test()
+    #z_three_test()
 
     if(CSZLsuper.G_mode['K_Data_UpdateModeFlag']):
 
@@ -820,6 +829,7 @@ def CSZL_HistoryDataAnalysis():
         y=Last20_K_Data.shape[1]    #7
         z=Last20_K_Data.shape[2]    #天数
 
+
         for i in range(len(g_all_result)):
             try:
                 temp=str(g_all_result[i]['s_code'],"utf-8")
@@ -828,16 +838,32 @@ def CSZL_HistoryDataAnalysis():
 
                 assert zzz==zzz2
 
-                if(zzz==zzz2):
-                    if(Last20_K_Data[(i,0,0)]!=0):
-                        edcx=1
+                if(zzz==zzz2 and zzz!=0):
 
+                    #初始化收盘价以及3日形态计数
+                    if(Last20_K_Data[i,1,19]!=0):
+                        twodasage=k_type_def(Last20_K_Data,i,17)
+                        onedasage=k_type_def(Last20_K_Data,i,18)
+                        today=k_type_def(Last20_K_Data,i,19)
+
+                        g_all_info[i]['K_three_amount']=KtypeThreeLoaded[twodasage,onedasage,twodasage,0]
+                        g_all_info[i]['K_three_super']=KtypeThreeLoaded[twodasage,onedasage,twodasage,5]
+                        g_all_info[i]['K_three_superwrong']=KtypeThreeLoaded[twodasage,onedasage,twodasage,7]
+
+
+                        g_all_info[i]['s_HisOutput1']=KtypeThreeLoaded[twodasage,onedasage,twodasage,4]
+                    else:
+                        g_all_info[i]['s_HisOutput1']=0
+                    if(zzz==603683):
+                        fsefse=8
+        
                 else:
                     #这里讲道理不会走到（用assert试试看）
                     continue
 
-                g_all_info[i]['s_HisOutput1']=HistoryAnaLoaded[i,2]
-            
+                #g_all_info[i]['s_HisOutput1']=HistoryAnaLoaded[i,2]
+                
+                feigjiegse=5
 
             except Exception as ex:
                 print (Exception,":",ex)
@@ -850,7 +876,7 @@ def CSZL_HistoryDataAnalysis():
 
 
     #180301改成直接读取分析结果
-
+    
     for z in range(len(g_all_result)):
         try:
             #ddd=g_all_info[z]['s_code']
@@ -859,8 +885,8 @@ def CSZL_HistoryDataAnalysis():
             #g_all_info[z]['s_HisOutput1']=HistoryAnaLoaded[z,2]
 
             #暂时放一放
-            g_all_info[z]['s_HisOutput1']=0
-            
+            #g_all_info[z]['s_HisOutput1']=0
+            pass
 
         except Exception as ex:
             print (Exception,":",ex)
@@ -868,7 +894,59 @@ def CSZL_HistoryDataAnalysis():
 
     zzzz=1
 
+def k_type_def(D_input,D_index,date_position,response_rate=0.005):
 
+
+    cur=D_input[(D_index,1,date_position)]
+    #实体长度
+    whole=D_input[(D_index,3,date_position)]-D_input[(D_index,1,date_position)]
+    #high=HistoryLoaded[(i,2,ii)]-HistoryLoaded[(i,1,ii)]
+    #low=HistoryLoaded[(i,4,ii)]-HistoryLoaded[(i,1,ii)]
+                    
+    #最高价与收盘价的差redline，与开盘价的差redline2
+    redline=D_input[(D_index,2,date_position)]-D_input[(D_index,3,date_position)]
+    redline2=D_input[(D_index,2,date_position)]-D_input[(D_index,1,date_position)]
+    #最低价与收盘价的差greenline，与开盘价的差greenline2
+    greenline=D_input[(D_index,4,date_position)]-D_input[(D_index,3,date_position)]
+    greenline2=D_input[(D_index,4,date_position)]-D_input[(D_index,1,date_position)]
+                 
+    #根据上述五个信息分析线形态共分12种，见excel表
+    
+    cur_shape=0
+
+    if((whole/cur)>response_rate):
+        if((redline/cur)>response_rate):
+            if((greenline2/cur)<(-response_rate)):
+                cur_shape=4
+            else:
+                cur_shape=5
+        elif((greenline2/cur)<-response_rate):
+            cur_shape=2
+        else:
+            cur_shape=1
+
+    elif ((whole/cur)<(-response_rate)):
+        if((redline2/cur)>response_rate):
+            if((greenline/cur)<(-response_rate)):
+                cur_shape=9
+            else:
+                cur_shape=11
+        elif((greenline/cur)<(-response_rate)):
+            cur_shape=8
+        else:
+            cur_shape=12
+    else:
+        if((redline2/cur)>response_rate):
+            if((greenline2/cur)<(-response_rate)):
+                cur_shape=6
+            else:
+                cur_shape=10
+        elif((greenline2/cur)<(-response_rate)):
+            cur_shape=3
+        else:
+            cur_shape=7
+
+    return cur_shape
 
   
 STD_INPUT_HANDLE = -10  
@@ -933,8 +1011,11 @@ def z_three_test():
             for iii in range(1,13):
                 
                 #print("%4.4f &4d %4d " % (Ktype_counter[i,ii,iii,5],cur_rank2),end="")
-                if(Ktype_counter[i,ii,iii,5]>=20 and Ktype_counter[i,ii,iii,7]<=20):        
+                if((Ktype_counter[i,ii,iii,5]-Ktype_counter[i,ii,iii,7])>=20):        
                     print("**",end="")
+                elif((Ktype_counter[i,ii,iii,7]-Ktype_counter[i,ii,iii,5])>=20):
+                    print("xx",end="")
+
 
                 print("%4d %2d %4d " % (Ktype_counter[i,ii,iii,0],Ktype_counter[i,ii,iii,5],Ktype_counter[i,ii,iii,7]),end="")
 
@@ -1084,6 +1165,7 @@ def HistoryDataGet(
                 #print(temp)
                 HistoryDataSave[(z,0,0)]=temp
                 kget=ts.get_k_data(temp,start=DayStart, end=DayEnd)
+
                 Kdata=kget.tail(Datas)
                 
                 datamax=len(Kdata)
