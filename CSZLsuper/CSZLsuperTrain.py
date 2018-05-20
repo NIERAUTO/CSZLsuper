@@ -216,7 +216,7 @@ def CSZL_ShortProp():
     y=All_K_Data.shape[1]    #7
     z=All_K_Data.shape[2]    #50
     
-    target_dateA=20160108
+    target_dateA=20140108
     target_dateB=20180125
 
     #有效数据
@@ -342,56 +342,8 @@ def CSZL_ShortProp():
                 if cur==0:
                     break
 
-
-
-                #实体长度
-                whole=All_K_Data[(hisdata_index,3,ii)]-All_K_Data[(hisdata_index,1,ii)]
-                #high=HistoryLoaded[(i,2,ii)]-HistoryLoaded[(i,1,ii)]
-                #low=HistoryLoaded[(i,4,ii)]-HistoryLoaded[(i,1,ii)]
-                    
-                #最高价与收盘价的差redline，与开盘价的差redline2
-                redline=All_K_Data[(hisdata_index,2,ii)]-All_K_Data[(hisdata_index,3,ii)]
-                redline2=All_K_Data[(hisdata_index,2,ii)]-All_K_Data[(hisdata_index,1,ii)]
-                #最低价与收盘价的差greenline，与开盘价的差greenline2
-                greenline=All_K_Data[(hisdata_index,4,ii)]-All_K_Data[(hisdata_index,3,ii)]
-                greenline2=All_K_Data[(hisdata_index,4,ii)]-All_K_Data[(hisdata_index,1,ii)]
-                 
-                #根据上述五个信息分析线形态共分12种，见excel表
-                response_rate=0.005
-                cur_shape=0
-
-                if((whole/cur)>response_rate):
-                    if((redline/cur)>response_rate):
-                        if((greenline2/cur)<(-response_rate)):
-                            cur_shape=4
-                        else:
-                            cur_shape=5
-                    elif((greenline2/cur)<-response_rate):
-                        cur_shape=2
-                    else:
-                        cur_shape=1
-
-                elif ((whole/cur)<(-response_rate)):
-                    if((redline2/cur)>response_rate):
-                        if((greenline/cur)<(-response_rate)):
-                            cur_shape=9
-                        else:
-                            cur_shape=11
-                    elif((greenline/cur)<(-response_rate)):
-                        cur_shape=8
-                    else:
-                        cur_shape=12
-                else:
-                    if((redline2/cur)>response_rate):
-                        if((greenline2/cur)<(-response_rate)):
-                            cur_shape=6
-                        else:
-                            cur_shape=10
-                    elif((greenline2/cur)<(-response_rate)):
-                        cur_shape=3
-                    else:
-                        cur_shape=7
-
+                #cur_shape=CSZLsuperGET.k_type_def2(All_K_Data[(hisdata_index,1,ii)],All_K_Data[(hisdata_index,2,ii)],All_K_Data[(hisdata_index,3,ii)],All_K_Data[(hisdata_index,4,ii)])
+                cur_shape=CSZLsuperGET.k_type_def(All_K_Data,hisdata_index,ii,0.005)
 
                 #当日成交
                 vol=All_K_Data[(hisdata_index,5,ii)]

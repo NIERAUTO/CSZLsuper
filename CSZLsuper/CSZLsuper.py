@@ -41,7 +41,7 @@ CSZL_threads.append(t_AnalysePARTroutine)
 
 G_mode={'TestModeFlag':False,            #测试模式
         'InitListUpdateModeFlag':False, #初始列表初始化
-        'K_Data_UpdateModeFlag':True}  #近20日K线数据初始化
+        'K_Data_UpdateModeFlag':False}  #近20日K线数据初始化
 
 '''
 def ModeChoice():

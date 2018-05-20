@@ -24,12 +24,15 @@ import ctypes
 z_init_nplist=[]
 g_all_result=[] #实时全局数据表
 g_part_result=[]
-g_all_info=[]
+g_all_info=[]   #全局信息表
 
 #常时数据采集结构
 SecretData_A=[]
 #特殊数据采集结构
 SecretData_B=[]
+
+KtypeThreeLoaded=[]
+
 
 g_list_update_index=0   #全局更新数据位置
 g_exit_flag=True
@@ -155,22 +158,26 @@ def CSZL_superINFOupdate():
                 cur_long=np.alen(g_part_result)
 
                 print ("PARTroutine : Runing")
-                #print("NO1:%s with score %f \n"%(str(g_part_result[cur_long-1]['s_Cname'],"utf-8"),g_part_result[cur_long-1]['s_zValue']))
-                #print("NO2:%s with score %f \n"%(str(g_part_result[cur_long-2]['s_Cname'],"utf-8"),g_part_result[cur_long-2]['s_zValue']))
-                #print("NO3:%s with score %f \n"%(str(g_part_result[cur_long-3]['s_Cname'],"utf-8"),g_part_result[cur_long-3]['s_zValue']))
 
                 if(cur_long>1):
                     for i in range(cur_long-1):
-                        #print("NO%d:%s %s with score %f \n"%(i+1,str(g_part_result[cur_long-1-i]['s_Cname'],"utf-8"),str(g_part_result[cur_long-1-i]['s_code'],"utf-8"),g_part_result[cur_long-1-i]['s_zValue']))
-                        print("NO%d:%s %s with score %f,战力：%d 准确率：%d 超神次数：%d 超鬼次数：%d \n"%(i+1,
+                        buff_all_index=g_part_result[cur_long-1-i]['s_key']
+
+                        print("NO%d:%s %s with score %f,战力：%d 准确率：%d 超神次数：%d 超鬼次数：%d 今日形态：%d\n"%(i+1,
                         str(g_part_result[cur_long-1-i]['s_Cname'],"utf-8"),
                         str(g_part_result[cur_long-1-i]['s_code'],"utf-8"),
                         g_part_result[cur_long-1-i]['s_zValue'],
-                        g_all_info[cur_long-1-i]['s_HisOutput1'],
-                        g_all_info[cur_long-1-i]['K_three_amount'],
-                        g_all_info[cur_long-1-i]['K_three_super'],
-                        g_all_info[cur_long-1-i]['K_three_superwrong']
+                        (g_all_info[buff_all_index]['s_HisOutput1']*10000),
+                        g_all_info[buff_all_index]['K_three_amount'],
+                        g_all_info[buff_all_index]['K_three_super'],
+                        g_all_info[buff_all_index]['K_three_superwrong'],
+                        g_part_result[cur_long-1-i]['s_curztype']
                         ))
+                        #print("NO%d:%s %s with score %f \n"%(i+1,str(g_part_result[cur_long-1-i]['s_Cname'],"utf-8"),str(g_part_result[cur_long-1-i]['s_code'],"utf-8"),g_part_result[cur_long-1-i]['s_zValue']))
+
+
+
+
 
             elif INFO_part_routine==(-1):
                 print ("PARTroutine : Wrong")
@@ -196,6 +203,10 @@ def CSZL_superINFOupdate():
             buff_d=0
         cur_counter+=1
     '''
+def get_cszl_index(result_list):
+    return result_list["s_key"]
+
+
 
 def CSZL_superinit():
     '''
@@ -227,8 +238,8 @@ def CSZL_superinit():
     #初始化typedef s_high
     z_useful_stock_type=np.dtype(([('s_key', int), ('s_code', 'S6'), ('s_plus', float),('s_now', float),
     ('s_last', float),('s_high', float),('s_low', float),
-    ('s_stflag', float),('K_three_amount', float),('K_three_super', float),('K_three_superwrong', float),('s_s5', float),
-    ('s_b1', float),('s_b2', float),('s_b3', float),('s_b4', float),('s_b5', float),
+    ('s_stflag', float),('K_three_amount', float),('K_three_super', float),('K_three_superwrong', float),('s_open', float),
+    ('s_2dayagetype', float),('s_1dayagetype', float),('s_curztype', float),('s_b4', float),('s_b5', float),
     ('s_vol', float),('s_wholecap', float),('s_mktcap', float),('s_HisOutput1', float),
     ('s_InFastUpdataList', int),('s_counter', int),('s_useful', int),('s_zValue', float),
     ('s_UpdateHour', int),('s_UpdateMinute', int),('s_ReachedHour', int),('s_ReachedMinute', int),
@@ -380,6 +391,8 @@ def CSZL_superGETAllroutine():
     global g_all_result
     global g_exit_flag
     global update_start
+    #真正多线程时候这里可能会出问题
+    global g_all_info
 
     global INFO_all_routine
 
@@ -426,7 +439,9 @@ def CSZL_superGETAllroutine():
   
                 #将tushare的信息转换为我的格式
                 CSZL_TypeChange(buff_result,buff_dr_result,update_cur,g_list_update_index,update_counter)
-                CSZL_INFOUpdate(g_all_info,update_cur,g_list_update_index)
+                CSZL_INFOUpdate(g_all_info,buff_result,update_cur,g_list_update_index)
+
+                #CSZL_Kanalyseupdate(g_all_info,update_cur,g_list_update_index)
                 #隐藏信息更新
                 CSZL_SecretData_A_Update(buff_dr_result,update_cur,g_list_update_index)
 
@@ -493,8 +508,8 @@ def CSZL_superAnalysePARTroutine():
     #如果退出flag被置就退出
     while g_exit_flag:
         
-        if (CSZL_TimeCheck() and update_start):
-        #if (CSZL_TimeCheck() ):
+        #if (CSZL_TimeCheck() and update_start):
+        if (CSZL_TimeCheck() ):
         
             try:
                 #先吧原part_list的数据拿过来
@@ -523,6 +538,7 @@ def CSZL_superAnalysePARTroutine():
 
                     #将tushare的信息转换为我的格式
                     CSZL_TypeChange(buff_part_result,buff_dr_result,part_list_cur-1,update_index=1)
+                    CSZL_partINFOUpdate(g_all_info,buff_part_result,part_list_cur-1,update_index=1)
 
                     #刷新特殊数据采集结构
                     CSZL_SecretData_B_Update(buff_dr_result,(part_list_cur-1))
@@ -698,11 +714,13 @@ def CSZL_TypeChange(z_type_result,tushare_result,date_max,update_index=1,s_count
 
                 z_type_result[update_index+i]['s_high']=z_type_result[update_index+i]['s_now']
                 z_type_result[update_index+i]['s_low']=z_type_result[update_index+i]['s_now']
+                z_type_result[update_index+i]['s_open']=z_type_result[update_index+i]['s_now']
             else:
 
                 z_type_result[update_index+i]['s_now']=tushare_result['price'][i]
                 z_type_result[update_index+i]['s_high']=tushare_result['high'][i]
                 z_type_result[update_index+i]['s_low']=tushare_result['low'][i]
+                z_type_result[update_index+i]['s_open']=tushare_result['open'][i]
 
             z_type_result[update_index+i]['s_last']=tushare_result['pre_close'][i]
 
@@ -712,6 +730,8 @@ def CSZL_TypeChange(z_type_result,tushare_result,date_max,update_index=1,s_count
             z_type_result[update_index+i]['s_UpdateHour']=CurHour
             z_type_result[update_index+i]['s_UpdateMinute']=CurMinute
 
+
+            z_type_result[update_index+i]['s_curztype']=k_type_def2(z_type_result[update_index+i]['s_open'],z_type_result[update_index+i]['s_high'],z_type_result[update_index+i]['s_now'],z_type_result[update_index+i]['s_low'])
             #ztest222=float(1000000)/(float(tushare_result['price'][i])*z_type_result[update_index+i]['s_wholecap']+1)
 
             #z_type_result[update_index+i]['s_mktcap']=(float(tushare_result['price'][i])*z_type_result[update_index+i]['s_wholecap'])
@@ -737,23 +757,67 @@ def CSZL_TypeChange(z_type_result,tushare_result,date_max,update_index=1,s_count
             wrongEx=str(ex)
             #Z_LOG_SAVE('TypeChangeWrongMessage.txt',wrongmessage+wrongEx)
 
-def CSZL_INFOUpdate(z_info_source,date_max,update_index=1):
+def CSZL_INFOUpdate(z_info_source,z_result_source,date_max,update_index=1):
     """
     将被剔除的3状态成员，变回普通成员
     
-
+    加入g_info转换
     """
 
     for i in range(date_max):
         try:
             if(z_info_source[update_index+i]['s_InFastUpdataList']==3):
                 z_info_source[update_index+i]['s_InFastUpdataList']=0
-
+            CSZL_Kanalyseupdate(z_info_source[update_index+i],z_result_source[update_index+i])
 
         except Exception as ex:
             #print (Exception,":",ex)
             wrongEx=str(ex)
             #Z_LOG_SAVE('TypeChangeWrongMessage.txt',wrongmessage+wrongEx)
+def CSZL_partINFOUpdate(z_info_source,z_result_source,date_max,update_index=1):
+    """
+    g_info更新
+    
+    ('s_stflag', float),('K_three_amount', float),('K_three_super', float),('K_three_superwrong', float),('s_open', float),
+    ('s_2dayagetype', float),('s_1dayagetype', float),('s_curztype
+    """
+
+    for i in range(date_max):
+        try:
+            buff_g_index=z_result_source[update_index+i]['s_key']
+
+            CSZL_Kanalyseupdate(z_info_source[buff_g_index],z_result_source[update_index+i])
+
+        except Exception as ex:
+            #print (Exception,":",ex)
+            wrongEx=str(ex)
+            #Z_LOG_SAVE('TypeChangeWrongMessage.txt',wrongmessage+wrongEx)
+
+def CSZL_Kanalyseupdate(z_info_source,z_result_source):
+    global KtypeThreeLoaded
+
+    try:
+
+        twodasage=int(z_info_source['s_2dayagetype'])
+        onedasage=int(z_info_source['s_1dayagetype'])
+        today=int(z_result_source['s_curztype'])
+        if(KtypeThreeLoaded[twodasage,onedasage,today,0]!=0):
+            z_info_source['K_three_amount']=KtypeThreeLoaded[twodasage,onedasage,today,0]
+            z_info_source['K_three_super']=KtypeThreeLoaded[twodasage,onedasage,today,5]
+            z_info_source['K_three_superwrong']=KtypeThreeLoaded[twodasage,onedasage,today,7]
+            z_info_source['s_HisOutput1']=KtypeThreeLoaded[twodasage,onedasage,today,1]/KtypeThreeLoaded[twodasage,onedasage,today,0]
+        else:
+            z_info_source['K_three_amount']=-99
+            z_info_source['K_three_super']=-99
+            z_info_source['K_three_superwrong']=-99
+            z_info_source['s_HisOutput1']=-99
+
+    except Exception as ex:
+        print (Exception,":",ex)
+        wrongEx=str(ex)
+        #Z_LOG_SAVE('TypeChangeWrongMessage.txt',wrongmessage+wrongEx)
+
+
 
 def CSZL_TimeCheck():
     global CurHour
@@ -766,7 +830,7 @@ def CSZL_TimeCheck():
 
     caltemp=CurHour*100+CurMinute
 
-    #return True
+    return True
 
     if (caltemp>=915 and caltemp<=1132) or (caltemp>=1300 and caltemp<=1503):
         return True
@@ -798,10 +862,12 @@ def CSZL_HistoryDataAnalysis():
 
     global g_all_info
     global g_all_result
+    global KtypeThreeLoaded
 
     cwd = os.getcwd()
     #初始化历史数据
     
+    #测试数据准确性
     #z_three_test()
 
     if(CSZLsuper.G_mode['K_Data_UpdateModeFlag']):
@@ -811,66 +877,74 @@ def CSZL_HistoryDataAnalysis():
         #CSZLsuperGET.HistoryDataGet("2017-04-04",10)
         #HistoryDataInit()
 
-        #读取历史分析的k线模块数据
-        TempPath = cwd + '\\output\\KtypeThree.npy'
-        KtypeThreeLoaded=np.load(TempPath)
+    #读取历史分析的k线模块数据
+    TempPath = cwd + '\\output\\KtypeThree.npy'
+    KtypeThreeLoaded=np.load(TempPath)
 
-        #读取刚刚更新的20日内的k线数据
-        TempPath = cwd + '\\data\\'+'History_data.npy'
-        Last20_K_Data=np.load(TempPath)
+    #读取刚刚更新的20日内的k线数据
+    TempPath = cwd + '\\data\\'+'History_data.npy'
+    Last20_K_Data=np.load(TempPath)
 
-        #读取长策略和短策略联合得出的分析结果
-        TempPath = cwd + '\\output\\'+'HisAna.npy'
-        HistoryAnaLoaded=np.load(TempPath)
+    #读取长策略和短策略联合得出的分析结果
+    TempPath = cwd + '\\output\\'+'HisAna.npy'
+    HistoryAnaLoaded=np.load(TempPath)
 
-        #将读取的历史分析数据和进20日数据进行匹配分析
+    #将读取的历史分析数据和进20日数据进行匹配分析
 
-        x=len(g_all_result)         #4000
-        y=Last20_K_Data.shape[1]    #7
-        z=Last20_K_Data.shape[2]    #天数
+    x=len(g_all_result)         #4000
+    y=Last20_K_Data.shape[1]    #7
+    z=Last20_K_Data.shape[2]    #天数
 
+    now=datetime.datetime.now()
+    now=int(now.strftime('%Y%m%d'))   
+    for i in range(len(g_all_result)):
+        try:
+            temp=str(g_all_result[i]['s_code'],"utf-8")
+            zzz=float(temp)
+            zzz2=Last20_K_Data[(i,0,0)]
 
-        for i in range(len(g_all_result)):
-            try:
-                temp=str(g_all_result[i]['s_code'],"utf-8")
-                zzz=float(temp)
-                zzz2=Last20_K_Data[(i,0,0)]
+            assert zzz==zzz2
 
-                assert zzz==zzz2
+            if(zzz==zzz2 and zzz!=0):
 
-                if(zzz==zzz2 and zzz!=0):
-
-                    #初始化收盘价以及3日形态计数
-                    if(Last20_K_Data[i,1,19]!=0):
-                        twodasage=k_type_def(Last20_K_Data,i,17)
-                        onedasage=k_type_def(Last20_K_Data,i,18)
-                        today=k_type_def(Last20_K_Data,i,19)
-
-                        g_all_info[i]['K_three_amount']=KtypeThreeLoaded[twodasage,onedasage,twodasage,0]
-                        g_all_info[i]['K_three_super']=KtypeThreeLoaded[twodasage,onedasage,twodasage,5]
-                        g_all_info[i]['K_three_superwrong']=KtypeThreeLoaded[twodasage,onedasage,twodasage,7]
-
-
-                        g_all_info[i]['s_HisOutput1']=KtypeThreeLoaded[twodasage,onedasage,twodasage,4]
+                #初始化收盘价以及3日形态计数
+                if(Last20_K_Data[i,1,19]!=0):
+                    twodasage=k_type_def(Last20_K_Data,i,17)
+                    onedasage=k_type_def(Last20_K_Data,i,18)
+                    today=k_type_def(Last20_K_Data,i,19)
+                    '''
+                    twodasage=k_type_def(Last20_K_Data,i,17)
+                    onedasage=k_type_def(Last20_K_Data,i,18)
+                    today=k_type_def(Last20_K_Data,i,19)
+                    g_all_info[i]['K_three_amount']=KtypeThreeLoaded[twodasage,onedasage,twodasage,0]
+                    g_all_info[i]['K_three_super']=KtypeThreeLoaded[twodasage,onedasage,twodasage,5]
+                    g_all_info[i]['K_three_superwrong']=KtypeThreeLoaded[twodasage,onedasage,twodasage,7]
+                    g_all_info[i]['s_HisOutput1']=KtypeThreeLoaded[twodasage,onedasage,twodasage,4]
+                    '''
+            
+                    if((now)==Last20_K_Data[i,6,19]):
+                        g_all_info[i]['s_2dayagetype']=onedasage
+                        g_all_info[i]['s_1dayagetype']=today
                     else:
-                        g_all_info[i]['s_HisOutput1']=0
-                    if(zzz==603683):
-                        fsefse=8
-        
+                        g_all_info[i]['s_2dayagetype']=twodasage
+                        g_all_info[i]['s_1dayagetype']=onedasage
                 else:
-                    #这里讲道理不会走到（用assert试试看）
-                    continue
+                    g_all_info[i]['s_2dayagetype']=0
+                    g_all_info[i]['s_1dayagetype']=0
 
-                #g_all_info[i]['s_HisOutput1']=HistoryAnaLoaded[i,2]
+                if(zzz==603683):
+                    fsefse=8
+        
+            else:
+                #这里讲道理不会走到（用assert试试看）
+                continue
+
+            #g_all_info[i]['s_HisOutput1']=HistoryAnaLoaded[i,2]
                 
-                feigjiegse=5
+            feigjiegse=5
 
-            except Exception as ex:
-                print (Exception,":",ex)
-
-
-
-
+        except Exception as ex:
+            print (Exception,":",ex)
 
 
 
@@ -885,7 +959,7 @@ def CSZL_HistoryDataAnalysis():
             #g_all_info[z]['s_HisOutput1']=HistoryAnaLoaded[z,2]
 
             #暂时放一放
-            #g_all_info[z]['s_HisOutput1']=0
+            g_all_info[z]['s_HisOutput1']=0
             pass
 
         except Exception as ex:
@@ -896,19 +970,26 @@ def CSZL_HistoryDataAnalysis():
 
 def k_type_def(D_input,D_index,date_position,response_rate=0.005):
 
+    return k_type_def2(D_input[(D_index,1,date_position)],D_input[(D_index,2,date_position)],D_input[(D_index,3,date_position)],D_input[(D_index,4,date_position)],response_rate)
 
-    cur=D_input[(D_index,1,date_position)]
+def k_type_def2(start,high,end,low,response_rate=0.005):
+
+
+    cur=start
+    if(cur==0):
+        return 0
+
     #实体长度
-    whole=D_input[(D_index,3,date_position)]-D_input[(D_index,1,date_position)]
+    whole=end-start
     #high=HistoryLoaded[(i,2,ii)]-HistoryLoaded[(i,1,ii)]
     #low=HistoryLoaded[(i,4,ii)]-HistoryLoaded[(i,1,ii)]
                     
     #最高价与收盘价的差redline，与开盘价的差redline2
-    redline=D_input[(D_index,2,date_position)]-D_input[(D_index,3,date_position)]
-    redline2=D_input[(D_index,2,date_position)]-D_input[(D_index,1,date_position)]
+    redline=high-end
+    redline2=high-start
     #最低价与收盘价的差greenline，与开盘价的差greenline2
-    greenline=D_input[(D_index,4,date_position)]-D_input[(D_index,3,date_position)]
-    greenline2=D_input[(D_index,4,date_position)]-D_input[(D_index,1,date_position)]
+    greenline=low-end
+    greenline2=low-start
                  
     #根据上述五个信息分析线形态共分12种，见excel表
     
@@ -947,7 +1028,6 @@ def k_type_def(D_input,D_index,date_position,response_rate=0.005):
             cur_shape=7
 
     return cur_shape
-
   
 STD_INPUT_HANDLE = -10  
 STD_OUTPUT_HANDLE= -11  
@@ -1011,14 +1091,15 @@ def z_three_test():
             for iii in range(1,13):
                 
                 #print("%4.4f &4d %4d " % (Ktype_counter[i,ii,iii,5],cur_rank2),end="")
-                if((Ktype_counter[i,ii,iii,5]-Ktype_counter[i,ii,iii,7])>=20):        
+                if((Ktype_counter[i,ii,iii,5]-Ktype_counter[i,ii,iii,7])>=60):        
                     print("**",end="")
-                elif((Ktype_counter[i,ii,iii,7]-Ktype_counter[i,ii,iii,5])>=20):
+                elif((Ktype_counter[i,ii,iii,7]-Ktype_counter[i,ii,iii,5])>=60):
                     print("xx",end="")
 
-
-                print("%4d %2d %4d " % (Ktype_counter[i,ii,iii,0],Ktype_counter[i,ii,iii,5],Ktype_counter[i,ii,iii,7]),end="")
-
+                if(Ktype_counter[i,ii,iii,0]!=0):
+                    print("%5d %2.4f %4d " % (Ktype_counter[i,ii,iii,0],Ktype_counter[i,ii,iii,1]/Ktype_counter[i,ii,iii,0],Ktype_counter[i,ii,iii,7]),end="")
+                else:
+                    print("%5d %2.4f %4d " % (Ktype_counter[i,ii,iii,0],0,Ktype_counter[i,ii,iii,7]),end="")
             print("\n")
         zzz=str(i)
         clr.print_red_text(zzz)
@@ -1026,108 +1107,6 @@ def z_three_test():
         
     sadfiosjdf=2
 
-
-
-def HistoryDataInit():
-    """
-    历史数据保存(进30天)
-    """
-    
-    dates=20
-
-    
-    DayNow=datetime.datetime.now()
-    #这里改时间
-    NDayAgo = (datetime.datetime.now() - datetime.timedelta(days = 30))
-    otherStyleTime = NDayAgo.strftime("%Y-%m-%d")
-    otherStyleTime2 = DayNow.strftime("%Y-%m-%d")
-
-    HistoryData10=np.zeros((4000,7,dates),dtype=float)
-    '''
-    zempty=ts.get_k_data("888888",start=otherStyleTime, end=otherStyleTime2)
-    z222=ts.get_k_data("888888",start=otherStyleTime, end=otherStyleTime2)
-
-    z333=z222.tail(10)
-
-
-    if(len(z333)==10):
-        print('sadf')
-
-    
-
-    eee=z333.close.data[0]
-
-    eee2=z333.close.data[9]
-
-    
-
-
-    for datas in eee:
-        zzz=datas
-        print(zzz)
-
-    eee2=z333.close.data[1]
-
-    for x in range(0,10):
-        #zmctest1105[(z,0,x)]=z333.open[x]
-        print(z333.open[x])
-
-        #zmctest1105[(z,0,x)]=z333.open[x]
-    '''
-
-
-    if True:
-        all=len(g_all_result)
-
-        for z in range(all):
-            try:
-                
-                temp=str(g_all_result[z]['s_code'],"utf-8")
-                #print(temp)
-                HistoryData10[(z,0,0)]=temp
-                z222=ts.get_k_data(temp,start=otherStyleTime, end=otherStyleTime2)
-
-                z333=z222.tail(dates)
-                datamax=len(z333)
-
-                x=0
-
-                if(z333.empty==True):
-                    continue
-
-                #for x in range(0,datamax):
-                for singledatezz in z333.date:
-
-
-                    changedate=time.strptime(singledatezz,"%Y-%m-%d")
-                    changedate2=time.strftime("%Y%m%d",changedate)
-                    changedate3=int(changedate2)
-                    HistoryData10[(z,6,x)]=changedate3
-
-                    #zmctest1105[(z,0,x)]=g_all_result[z]['s_code']
-                    #HistoryData10[(z,1,x)]=z333.open.data[datamax-x-1]
-                    HistoryData10[(z,1,x)]=z333.open.data[x]
-                    HistoryData10[(z,2,x)]=z333.high.data[x]
-                    HistoryData10[(z,3,x)]=z333.close.data[x]
-                    HistoryData10[(z,4,x)]=z333.low.data[x]
-                    HistoryData10[(z,5,x)]=z333.volume.data[x]
-                    #zmctest1105[(z,5,x)]=z333.amount.data[x]
-                    x+=1
-                print(z/all)
-                print("\n")
-
-            except Exception as ex:
-                sleeptime=random.randint(50,99)
-                time.sleep(sleeptime/100)       
-                wrongmessage="HistoryRoutine FAIL at : %s \n" % ( time.ctime(time.time()))
-                print (wrongmessage)
-                wrongEx=str(ex)
-                Z_LOG_SAVE('HistoryWrongMessage.txt',wrongmessage+wrongEx)
-                print (Exception,":",ex)
-
-        cwd = os.getcwd()
-        txtFile = cwd + '\\data\\'+'History_data.npy'
-        np.save(txtFile, HistoryData10)
 
 def HistoryDataGet(
     DayEnd=datetime.datetime.now().strftime("%Y-%m-%d"),
@@ -1211,7 +1190,7 @@ def CSZL_SecretDataInit():
     """
     初始化重要数据
     """
-
+    global g_all_info
 
     global SecretData_A
     global SecretData_B
@@ -1243,6 +1222,7 @@ def CSZL_SecretDataInit():
     print(SecretData_A[(2,0,0)])
     '''
 
+    #每日的时间分割(假设一天采集5000个数据)x每个时间点采集的数据条数(20条)
     #time1日期 time2详细时间 code代码 last昨收 20个值 保留
     SecretData_B=np.zeros((5000*20+1,30),dtype=float)
     
