@@ -163,7 +163,7 @@ def CSZL_superINFOupdate():
                     for i in range(cur_long-1):
                         buff_all_index=g_part_result[cur_long-1-i]['s_key']
 
-                        print("NO%d:%s %s with score %f,战力：%d 准确率：%d 超神次数：%d 超鬼次数：%d 今日形态：%d\n"%(i+1,
+                        print("NO%d:%s %s with score %f,战力：%d 准确率：%d 超神次数：%d 超鬼次数：%d 今日形态：%d RP值：%d\n"%(i+1,
                         str(g_part_result[cur_long-1-i]['s_Cname'],"utf-8"),
                         str(g_part_result[cur_long-1-i]['s_code'],"utf-8"),
                         g_part_result[cur_long-1-i]['s_zValue'],
@@ -171,7 +171,8 @@ def CSZL_superINFOupdate():
                         g_all_info[buff_all_index]['K_three_amount'],
                         g_all_info[buff_all_index]['K_three_super'],
                         g_all_info[buff_all_index]['K_three_superwrong'],
-                        g_part_result[cur_long-1-i]['s_curztype']
+                        g_part_result[cur_long-1-i]['s_curztype'],
+                        g_all_info[buff_all_index]['s_RP']
                         ))
                         #print("NO%d:%s %s with score %f \n"%(i+1,str(g_part_result[cur_long-1-i]['s_Cname'],"utf-8"),str(g_part_result[cur_long-1-i]['s_code'],"utf-8"),g_part_result[cur_long-1-i]['s_zValue']))
 
@@ -239,7 +240,7 @@ def CSZL_superinit():
     z_useful_stock_type=np.dtype(([('s_key', int), ('s_code', 'S6'), ('s_plus', float),('s_now', float),
     ('s_last', float),('s_high', float),('s_low', float),
     ('s_stflag', float),('K_three_amount', float),('K_three_super', float),('K_three_superwrong', float),('s_open', float),
-    ('s_2dayagetype', float),('s_1dayagetype', float),('s_curztype', float),('s_b4', float),('s_b5', float),
+    ('s_2dayagetype', float),('s_1dayagetype', float),('s_curztype', float),('s_RP', float),('s_b5', float),
     ('s_vol', float),('s_wholecap', float),('s_mktcap', float),('s_HisOutput1', float),
     ('s_InFastUpdataList', int),('s_counter', int),('s_useful', int),('s_zValue', float),
     ('s_UpdateHour', int),('s_UpdateMinute', int),('s_ReachedHour', int),('s_ReachedMinute', int),
@@ -508,8 +509,8 @@ def CSZL_superAnalysePARTroutine():
     #如果退出flag被置就退出
     while g_exit_flag:
         
-        #if (CSZL_TimeCheck() and update_start):
-        if (CSZL_TimeCheck() ):
+        if (CSZL_TimeCheck() and update_start or CSZLsuper.G_mode['RoutineTestFlag']):
+        #if (CSZL_TimeCheck() ):
         
             try:
                 #先吧原part_list的数据拿过来
@@ -546,7 +547,8 @@ def CSZL_superAnalysePARTroutine():
                     #重新计算value
                     for i in range(part_list_cur-1):
                         #temp=str(buff_part_result[1+i]['s_code']).zfill(6)
-                        buff_part_result[i+1]['s_zValue']=CSZL_ValueCal(buff_part_result[i+1],g_all_info[i+1])
+                        all_index=buff_part_result[i+1]['s_key']
+                        buff_part_result[i+1]['s_zValue']=CSZL_ValueCal(buff_part_result[i+1],g_all_info[all_index])
 
 
                 #再吧新的all_list的数据拿过来
@@ -645,8 +647,8 @@ def CSZL_ValueCal(StockResult,StockINFO):
     cur_price=StockResult['s_now']
     cur_high=StockResult['s_high']
     cur_mktcap=StockResult['s_mktcap']
-    cur_10Value=StockINFO['s_HisOutput1']
-
+    cur_zdl=StockINFO['s_HisOutput1']
+    cur_RP=StockINFO['s_RP']
 
     LastValue=0
 
@@ -655,7 +657,7 @@ def CSZL_ValueCal(StockResult,StockINFO):
         return LastValue
     
     if ((cur_high-cur_price)/cur_price)>0.01:
-        LastValue-=2
+        LastValue-=0.75
 
 
     if (StockResult['s_plus']>=2.5) and (StockResult['s_plus']<6):
@@ -673,11 +675,9 @@ def CSZL_ValueCal(StockResult,StockINFO):
         elif(cur_mktcap>=5000000):
             LastValue-=2
         '''
+    LastValue+=(cur_RP-60)/20
 
-    if(cur_10Value>0):
-        LastValue+=0.5  
-    elif(cur_mktcap<0):
-        LastValue-=0.5  
+    LastValue+=cur_zdl*100
 
     if(StockResult['s_stflag']!=0):
         LastValue-=4
@@ -807,16 +807,15 @@ def CSZL_Kanalyseupdate(z_info_source,z_result_source):
             z_info_source['K_three_superwrong']=KtypeThreeLoaded[twodasage,onedasage,today,7]
             z_info_source['s_HisOutput1']=KtypeThreeLoaded[twodasage,onedasage,today,1]/KtypeThreeLoaded[twodasage,onedasage,today,0]
         else:
-            z_info_source['K_three_amount']=-99
-            z_info_source['K_three_super']=-99
-            z_info_source['K_three_superwrong']=-99
-            z_info_source['s_HisOutput1']=-99
+            z_info_source['K_three_amount']=0
+            z_info_source['K_three_super']=0
+            z_info_source['K_three_superwrong']=0
+            z_info_source['s_HisOutput1']=0
 
     except Exception as ex:
         print (Exception,":",ex)
         wrongEx=str(ex)
         #Z_LOG_SAVE('TypeChangeWrongMessage.txt',wrongmessage+wrongEx)
-
 
 
 def CSZL_TimeCheck():
@@ -830,9 +829,9 @@ def CSZL_TimeCheck():
 
     caltemp=CurHour*100+CurMinute
 
-    return True
+    #return True
 
-    if (caltemp>=915 and caltemp<=1132) or (caltemp>=1300 and caltemp<=1503):
+    if (caltemp>=915 and caltemp<=1132) or (caltemp>=1300 and caltemp<=1503) or CSZLsuper.G_mode['RoutineTestFlag']:
         return True
     else:
         return False        
@@ -897,6 +896,8 @@ def CSZL_HistoryDataAnalysis():
 
     now=datetime.datetime.now()
     now=int(now.strftime('%Y%m%d'))   
+    random.seed(now)
+
     for i in range(len(g_all_result)):
         try:
             temp=str(g_all_result[i]['s_code'],"utf-8")
@@ -906,6 +907,11 @@ def CSZL_HistoryDataAnalysis():
             assert zzz==zzz2
 
             if(zzz==zzz2 and zzz!=0):
+
+                
+
+                g_all_info[i]['s_RP']=int(random.random()*100)
+
 
                 #初始化收盘价以及3日形态计数
                 if(Last20_K_Data[i,1,19]!=0):
@@ -922,7 +928,7 @@ def CSZL_HistoryDataAnalysis():
                     g_all_info[i]['s_HisOutput1']=KtypeThreeLoaded[twodasage,onedasage,twodasage,4]
                     '''
             
-                    if((now)==Last20_K_Data[i,6,19]):
+                    if((now)!=Last20_K_Data[i,6,19]):
                         g_all_info[i]['s_2dayagetype']=onedasage
                         g_all_info[i]['s_1dayagetype']=today
                     else:
