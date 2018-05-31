@@ -31,6 +31,8 @@ g_all_result=[]
 LongProp=[]
 #实时短期属性 每个循环可能都需要改变
 ShortProp=[]
+#高低位置属性
+PosProp=[]
 #3天前的形状 2天前的形状 1天前的形状 0 1 2 counter total value
 a=[]
 
@@ -52,7 +54,7 @@ def CSZL_TrainInitNEW():
     All_K_Data=np.load(txtFile1)
 
 
-    startdate=20060126
+    startdate=20100126
     enddate=20180126
 
     z=All_K_Data.shape[2]    #50
@@ -277,7 +279,8 @@ def CSZL_ShortProp():
             else:
                 updatecounter+=1
                 continue
-
+        elif(zzz==0):
+            continue
 
         #countershape.clear()
         #countershape=[0,0,0,0,0,0,0,0,0,0,0,0,0]
@@ -348,7 +351,7 @@ def CSZL_ShortProp():
                 #当日成交
                 vol=All_K_Data[(hisdata_index,5,ii)]
             
-                #震荡区间(当日最高减去当然最低)
+                #震荡区间(当日最高减去当日最低)
                 section=All_K_Data[(hisdata_index,2,ii)]-All_K_Data[(hisdata_index,4,ii)]
                 #区间波动率计数
                 #sectionrate+=(section/cur)
@@ -523,6 +526,137 @@ def CSZL_ShortProp():
 
     zzzzz=1
 
+def CSZL_PosProp():
+    '''
+    计算位置
+
+    '''
+    global All_K_Data
+
+    global PosProp
+
+    # code 全最高 全最低 666最高 最低 166最高 166最低 5最高 5最低 全局位置 666位置 166位置
+    PosProp=np.zeros((4000,15),dtype=float)
+    
+    x=len(g_all_result)         #4000
+    y=All_K_Data.shape[1]    #7
+    z=All_K_Data.shape[2]    #50
+
+
+    #读取历史数据的位置
+    hisdata_index=1
+    #取出历史数据名称列表用于后面找不到位置时进行的搜索
+    CodeList=All_K_Data[:,0,0]
+
+    for i in range(x):
+        if(i%30==0):
+            print(i)
+  
+        temp=str(g_all_result[i]['s_code'],"utf-8")
+        zzz=float(temp)
+        zzz2=All_K_Data[(hisdata_index,0,0)]
+
+
+        #如果当前更新列表和历史数据版本不一致导致数据错位
+        if(zzz!=zzz2 and zzz!=0): 
+            #从历史数据列表中寻找是否有对应值
+            buff=np.argwhere(CodeList==int(zzz))
+            #如果有指则重新定义历史数据位置
+            if(buff!=None):
+                foundindex=int(buff)
+                hisdata_index=foundindex
+                zzz2=All_K_Data[(hisdata_index,0,0)]
+                searchcounter+=1
+            else:
+                updatecounter+=1
+                continue
+        elif(zzz==0):
+            continue
+
+        PosProp[i,0]=zzz
+
+        highall=0
+        lowall=65534    
+        high666=0
+        low666=65533
+        high166=0
+        low166=65532
+        high5=0
+        low5=65531
+        lastdata=0
+
+        stop666=True
+        stop166=True
+        stop5=True
+        stop1=True
+
+        #有效数据
+        avcounter=0
+        for ii in range(z):
+            cur_high=All_K_Data[hisdata_index,2,(z-1-ii)]
+            cur_low=All_K_Data[hisdata_index,4,(z-1-ii)]
+            cur_price=All_K_Data[hisdata_index,3,(z-1-ii)]
+
+            if(cur_high!=0 and cur_low!=0):                
+                avcounter+=1
+            else:
+                continue
+        
+            #TODO有时间用栈改
+            if(cur_high>highall):
+                highall=cur_high
+            if(cur_low<lowall):
+                lowall=cur_low
+
+            if(avcounter>0 and stop1):
+                lastdata=cur_price
+                stop1=False
+
+            if(avcounter>5 and stop5):
+                high5=highall
+                low5=lowall
+                stop5=False
+     
+            if(avcounter>166 and stop166):
+                high166=highall
+                low166=lowall
+                stop166=False
+            if(avcounter>466 and stop666):
+                high666=highall
+                low666=lowall
+                stop666=False
+
+        PosProp[i,1]=highall
+        PosProp[i,2]=lowall
+        PosProp[i,3]=high666
+        PosProp[i,4]=low666
+        PosProp[i,5]=high166
+        PosProp[i,6]=low166
+        PosProp[i,7]=high5
+        PosProp[i,8]=low5
+        
+        #调试
+        if(zzz==600000):
+            sdfsdf=6
+        PosProp[i,9]=pos_cal(PosProp[i,1],PosProp[i,2],lastdata)
+        PosProp[i,10]=pos_cal(PosProp[i,3],PosProp[i,4],lastdata)
+        PosProp[i,11]=pos_cal(PosProp[i,5],PosProp[i,6],lastdata)
+
+        hisdata_index+=1
+def pos_cal(high ,low ,now):
+    try:
+        if(low>60000 or high<0.1):
+            per=-1
+            return per
+        per=(now-low)/(high-low)
+    except Exception as ex:
+        per=0
+
+    return per
+    
+
+
+
 class Z_Counter(object):
     inner_counter=0
     inner_sum=0
@@ -601,14 +735,19 @@ def CSZL_TrainValueCalNEW(InputDataLong,InputDataShort):
 def CSZL_TrainDataSave():
 
     global All_K_Data
+    global PosProp
 
-    #no code value1 value2 value3
-    HisAna=np.zeros((4000,5),dtype=float)
+    #no code value1 value2 value3 Allavg 666avg 166avg 
+    HisAna=np.zeros((4000,8),dtype=float)
 
     for z in range(4000):
         HisAna[z,0]=z
         HisAna[z,1]=All_K_Data[z,0,0]
-        HisAna[z,2]=0.5
+        HisAna[z,5]=PosProp[z,9]     #当前位置相对于历史位置
+        HisAna[z,6]=PosProp[z,10]     #当前位置相对于666日位置
+        HisAna[z,7]=PosProp[z,11]     #当前位置相对于166日位置
+
+
 
     cwd = os.getcwd()
     #now=datetime.datetime.now()
@@ -801,6 +940,10 @@ def CSZL_TrainMainNEW(g_all_resultin):
     #初始化训练周期
     TrainDate=CSZL_TrainInitNEW()
 
+    #初始化位置属性
+    CSZL_PosProp()
+
+    CSZL_TrainDataSave()
 
     #初始化长期属性
     CSZL_LongProp()

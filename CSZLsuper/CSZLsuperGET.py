@@ -163,7 +163,7 @@ def CSZL_superINFOupdate():
                     for i in range(cur_long-1):
                         buff_all_index=g_part_result[cur_long-1-i]['s_key']
 
-                        print("NO%d:%s %s with score %f,战力：%d 准确率：%d 超神次数：%d 超鬼次数：%d 今日形态：%d RP值：%d\n"%(i+1,
+                        print("NO%d:%s %s with score %f,战力：%d 准确率：%d 超神次数：%d 超鬼次数：%d 今日形态：%d RP值：%d 466日位置：%f 166日位置：%f\n"%(i+1,
                         str(g_part_result[cur_long-1-i]['s_Cname'],"utf-8"),
                         str(g_part_result[cur_long-1-i]['s_code'],"utf-8"),
                         g_part_result[cur_long-1-i]['s_zValue'],
@@ -172,7 +172,9 @@ def CSZL_superINFOupdate():
                         g_all_info[buff_all_index]['K_three_super'],
                         g_all_info[buff_all_index]['K_three_superwrong'],
                         g_part_result[cur_long-1-i]['s_curztype'],
-                        g_all_info[buff_all_index]['s_RP']
+                        g_all_info[buff_all_index]['s_RP'],
+                        g_all_info[buff_all_index]['s_Posof666'],
+                        g_all_info[buff_all_index]['s_Posof166']
                         ))
                         #print("NO%d:%s %s with score %f \n"%(i+1,str(g_part_result[cur_long-1-i]['s_Cname'],"utf-8"),str(g_part_result[cur_long-1-i]['s_code'],"utf-8"),g_part_result[cur_long-1-i]['s_zValue']))
 
@@ -245,8 +247,8 @@ def CSZL_superinit():
     ('s_InFastUpdataList', int),('s_counter', int),('s_useful', int),('s_zValue', float),
     ('s_UpdateHour', int),('s_UpdateMinute', int),('s_ReachedHour', int),('s_ReachedMinute', int),
     ('s_ReachedFlag', int),('s_ReachedPrice', float),('s_Buy', int),('s_Cname', 'S40'),
-    ('s_per', float),('s_pb', float),('s_turnoverratio', float),('s_reserve1', float),
-    ('s_reserve2', float),('s_reserve3', float),('s_reserve4', float)
+    ('s_per', float),('s_pb', float),('s_turnoverratio', float),('s_Posofall', float),
+    ('s_Posof666', float),('s_Posof166', float),('s_Posof5', float)
     ]))
     #新建空结构体元素
     z_stock_empty_value = [(0, '000000',0,3,
@@ -871,6 +873,8 @@ def CSZL_HistoryDataAnalysis():
 
     if(CSZLsuper.G_mode['K_Data_UpdateModeFlag']):
 
+        #获取历史数据
+        #HistoryDataGet(Datas=2000,Path='ALL_History_data')
         #默认获取20天的数据
         HistoryDataGet()
         #CSZLsuperGET.HistoryDataGet("2017-04-04",10)
@@ -963,6 +967,10 @@ def CSZL_HistoryDataAnalysis():
             #eee=HistoryAnaLoaded[z,1]
 
             #g_all_info[z]['s_HisOutput1']=HistoryAnaLoaded[z,2]
+
+            g_all_info[z]['s_Posofall']=HistoryAnaLoaded[z,5]    #当前位置相对于历史位置
+            g_all_info[z]['s_Posof666']=HistoryAnaLoaded[z,6]     #当前位置相对于666日位置
+            g_all_info[z]['s_Posof166']=HistoryAnaLoaded[z,7]     #当前位置相对于166日位置
 
             #暂时放一放
             g_all_info[z]['s_HisOutput1']=0
@@ -1116,7 +1124,8 @@ def z_three_test():
 
 def HistoryDataGet(
     DayEnd=datetime.datetime.now().strftime("%Y-%m-%d"),
-    Datas=20):
+    Datas=20,
+    Path='History_data.npy'):
     """
     截止日期("xxxx-xx-xx")
     获取天数(int)
@@ -1189,7 +1198,7 @@ def HistoryDataGet(
                 print (Exception,":",ex)
 
         cwd = os.getcwd()
-        txtFile = cwd + '\\data\\'+'History_data.npy'
+        txtFile = cwd + '\\data\\'+Path
         np.save(txtFile, HistoryDataSave)
 
 def CSZL_SecretDataInit():
