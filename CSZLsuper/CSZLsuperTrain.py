@@ -590,6 +590,8 @@ def CSZL_PosProp():
         stop5=True
         stop1=True
 
+        section5=SectionCal(5)
+
         #有效数据
         avcounter=0
         for ii in range(z):
@@ -597,10 +599,15 @@ def CSZL_PosProp():
             cur_low=All_K_Data[hisdata_index,4,(z-1-ii)]
             cur_price=All_K_Data[hisdata_index,3,(z-1-ii)]
 
+            cur_date=All_K_Data[hisdata_index,6,(z-1-ii)]
+
             if(cur_high!=0 and cur_low!=0):                
                 avcounter+=1
             else:
                 continue
+
+            
+            section5.Add(All_K_Data[hisdata_index,:,(z-1-ii)])
         
             #TODO有时间用栈改
             if(cur_high>highall):
@@ -626,6 +633,10 @@ def CSZL_PosProp():
                 low666=lowall
                 stop666=False
 
+            test=section5.Max()
+
+            safsef=4
+
         PosProp[i,1]=highall
         PosProp[i,2]=lowall
         PosProp[i,3]=high666
@@ -636,13 +647,61 @@ def CSZL_PosProp():
         PosProp[i,8]=low5
         
         #调试
-        if(zzz==600000):
+        if(zzz==603659):
             sdfsdf=6
         PosProp[i,9]=pos_cal(PosProp[i,1],PosProp[i,2],lastdata)
         PosProp[i,10]=pos_cal(PosProp[i,3],PosProp[i,4],lastdata)
         PosProp[i,11]=pos_cal(PosProp[i,5],PosProp[i,6],lastdata)
 
         hisdata_index+=1
+
+class SectionCal(object):
+    Section_max=0
+    Section_min=9999
+
+    Section_index=0
+    Section_long=0
+
+    #初始化统计区间
+    SectionData=[]
+    def __init__(self,long):
+        #code day high low
+        self.SectionData=np.zeros((long,7),dtype=float)
+        self.Section_long=long
+
+    def Add(self,data):
+
+
+        max_del=self.SectionData[self.Section_index,2]
+        min_del=self.SectionData[self.Section_index,4]
+        if max_del==self.Section_max:
+            self.SectionData[self.Section_index,2]=0
+            buf_section=self.SectionData[:,2]
+            self.Section_max=max(buf_section)
+        
+        i=0
+        #将输入数据完整复制
+        for singledata in data:           
+            self.SectionData[self.Section_index,i]=singledata
+            i+=1
+        #更新最大值
+        if self.SectionData[self.Section_index,2]>self.Section_max:
+            self.Section_max=self.SectionData[self.Section_index,2]
+
+
+        if self.Section_index>=(self.Section_long-1):
+            self.Section_index=0
+        else:
+            self.Section_index+=1
+
+
+
+    def Max(self):
+        return self.Section_max
+    def Min(self):
+        return self.Section_min
+
+
 def pos_cal(high ,low ,now):
     try:
         if(low>60000 or high<0.1):

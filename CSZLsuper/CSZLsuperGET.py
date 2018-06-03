@@ -37,6 +37,7 @@ KtypeThreeLoaded=[]
 g_list_update_index=0   #全局更新数据位置
 g_exit_flag=True
 update_start=False
+csharp_display_mode=True
 
 #错误信息打印，暂时没用
 log_save_flag=True
@@ -122,7 +123,7 @@ def Z_AvailableJudge(zzz):
 
 def CSZL_superINFOupdate():
     """
-    CMD界面显示
+    CMD界面显示/保存数据为txt文件给显示用c#程序读取
     """
 
     global g_exit_flag
@@ -134,12 +135,12 @@ def CSZL_superINFOupdate():
 
     global g_part_result
 
-
+    
 
     print("INFO DISPLAY START")
     time.sleep(2)   
 
-
+    wrong_counter=0;
     while g_exit_flag:
         os.system('cls')
         try:
@@ -159,24 +160,57 @@ def CSZL_superINFOupdate():
 
                 print ("PARTroutine : Runing")
 
-                if(cur_long>1):
-                    for i in range(cur_long-1):
-                        buff_all_index=g_part_result[cur_long-1-i]['s_key']
+                if csharp_display_mode:
+                    try:
+                        cwd = os.getcwd()
+                        txtFile1 = cwd + '\\log\\display.txt'
+                        '''
+                        if os.path.exists(savefname):
+                            print ("Error:'%s' already exists" %savefname)
+                        '''
+                        #下面两句才是最重点。。。。也即open函数在打开目录中进行检查，如果有则打开，否则新建
+                        fobj=open(txtFile1,'w')
+                        for i in range(cur_long-1):
+                            buff_all_index=g_part_result[cur_long-1-i]['s_key']
+                            
+                            testt=("%d,%s,%s,%f,%d,%d,%d,%d,%d,%d,%f,%f\n"%(i+1,
+                            str(g_part_result[cur_long-1-i]['s_Cname'],"utf-8"),
+                            str(g_part_result[cur_long-1-i]['s_code'],"utf-8"),
+                            g_part_result[cur_long-1-i]['s_zValue'],
+                            (g_all_info[buff_all_index]['s_HisOutput1']*10000),
+                            g_all_info[buff_all_index]['K_three_amount'],
+                            g_all_info[buff_all_index]['K_three_super'],
+                            g_all_info[buff_all_index]['K_three_superwrong'],
+                            g_part_result[cur_long-1-i]['s_curztype'],
+                            g_all_info[buff_all_index]['s_RP'],
+                            g_all_info[buff_all_index]['s_Posof666'],
+                            g_all_info[buff_all_index]['s_Posof166']
+                            ))
+                            fobj.write(testt)
 
-                        print("NO%d:%s %s with score %f,战力：%d 准确率：%d 超神次数：%d 超鬼次数：%d 今日形态：%d RP值：%d 466日位置：%f 166日位置：%f\n"%(i+1,
-                        str(g_part_result[cur_long-1-i]['s_Cname'],"utf-8"),
-                        str(g_part_result[cur_long-1-i]['s_code'],"utf-8"),
-                        g_part_result[cur_long-1-i]['s_zValue'],
-                        (g_all_info[buff_all_index]['s_HisOutput1']*10000),
-                        g_all_info[buff_all_index]['K_three_amount'],
-                        g_all_info[buff_all_index]['K_three_super'],
-                        g_all_info[buff_all_index]['K_three_superwrong'],
-                        g_part_result[cur_long-1-i]['s_curztype'],
-                        g_all_info[buff_all_index]['s_RP'],
-                        g_all_info[buff_all_index]['s_Posof666'],
-                        g_all_info[buff_all_index]['s_Posof166']
-                        ))
-                        #print("NO%d:%s %s with score %f \n"%(i+1,str(g_part_result[cur_long-1-i]['s_Cname'],"utf-8"),str(g_part_result[cur_long-1-i]['s_code'],"utf-8"),g_part_result[cur_long-1-i]['s_zValue']))
+                        fobj.close()
+                    except:
+                        wrong_counter+=1
+
+                else:
+                    if(cur_long>1):
+                        for i in range(cur_long-1):
+                            buff_all_index=g_part_result[cur_long-1-i]['s_key']
+
+                            print("NO%d:%s %s with score %f,战力：%d 准确率：%d 超神次数：%d 超鬼次数：%d 今日形态：%d RP值：%d 466日位置：%f 166日位置：%f\n"%(i+1,
+                            str(g_part_result[cur_long-1-i]['s_Cname'],"utf-8"),
+                            str(g_part_result[cur_long-1-i]['s_code'],"utf-8"),
+                            g_part_result[cur_long-1-i]['s_zValue'],
+                            (g_all_info[buff_all_index]['s_HisOutput1']*10000),
+                            g_all_info[buff_all_index]['K_three_amount'],
+                            g_all_info[buff_all_index]['K_three_super'],
+                            g_all_info[buff_all_index]['K_three_superwrong'],
+                            g_part_result[cur_long-1-i]['s_curztype'],
+                            g_all_info[buff_all_index]['s_RP'],
+                            g_all_info[buff_all_index]['s_Posof666'],
+                            g_all_info[buff_all_index]['s_Posof166']
+                            ))
+                            #print("NO%d:%s %s with score %f \n"%(i+1,str(g_part_result[cur_long-1-i]['s_Cname'],"utf-8"),str(g_part_result[cur_long-1-i]['s_code'],"utf-8"),g_part_result[cur_long-1-i]['s_zValue']))
 
 
 
@@ -799,7 +833,8 @@ def CSZL_Kanalyseupdate(z_info_source,z_result_source):
     global KtypeThreeLoaded
 
     try:
-
+        if(z_info_source['s_code']=='603659'):
+            sdfefs=4
         twodasage=int(z_info_source['s_2dayagetype'])
         onedasage=int(z_info_source['s_1dayagetype'])
         today=int(z_result_source['s_curztype'])
@@ -911,39 +946,45 @@ def CSZL_HistoryDataAnalysis():
             assert zzz==zzz2
 
             if(zzz==zzz2 and zzz!=0):
-
-                
-
+          
                 g_all_info[i]['s_RP']=int(random.random()*100)
 
 
                 #初始化收盘价以及3日形态计数
-                if(Last20_K_Data[i,1,19]!=0):
-                    twodasage=k_type_def(Last20_K_Data,i,17)
-                    onedasage=k_type_def(Last20_K_Data,i,18)
-                    today=k_type_def(Last20_K_Data,i,19)
-                    '''
-                    twodasage=k_type_def(Last20_K_Data,i,17)
-                    onedasage=k_type_def(Last20_K_Data,i,18)
-                    today=k_type_def(Last20_K_Data,i,19)
-                    g_all_info[i]['K_three_amount']=KtypeThreeLoaded[twodasage,onedasage,twodasage,0]
-                    g_all_info[i]['K_three_super']=KtypeThreeLoaded[twodasage,onedasage,twodasage,5]
-                    g_all_info[i]['K_three_superwrong']=KtypeThreeLoaded[twodasage,onedasage,twodasage,7]
-                    g_all_info[i]['s_HisOutput1']=KtypeThreeLoaded[twodasage,onedasage,twodasage,4]
-                    '''
-            
-                    if((now)!=Last20_K_Data[i,6,19]):
-                        g_all_info[i]['s_2dayagetype']=onedasage
-                        g_all_info[i]['s_1dayagetype']=today
-                    else:
-                        g_all_info[i]['s_2dayagetype']=twodasage
-                        g_all_info[i]['s_1dayagetype']=onedasage
-                else:
-                    g_all_info[i]['s_2dayagetype']=0
-                    g_all_info[i]['s_1dayagetype']=0
+                g_all_info[i]['s_2dayagetype']=0
+                g_all_info[i]['s_1dayagetype']=0
+                #如果5日内不停牌
+                for ii in range(15):
 
-                if(zzz==603683):
-                    fsefse=8
+                    if(Last20_K_Data[i,1,19-ii]!=0):
+                        twodasage=k_type_def(Last20_K_Data,i,17-ii)
+                        onedasage=k_type_def(Last20_K_Data,i,18-ii)
+                        today=k_type_def(Last20_K_Data,i,19-ii)
+                        '''
+                        twodasage=k_type_def(Last20_K_Data,i,17)
+                        onedasage=k_type_def(Last20_K_Data,i,18)
+                        today=k_type_def(Last20_K_Data,i,19)
+                        g_all_info[i]['K_three_amount']=KtypeThreeLoaded[twodasage,onedasage,twodasage,0]
+                        g_all_info[i]['K_three_super']=KtypeThreeLoaded[twodasage,onedasage,twodasage,5]
+                        g_all_info[i]['K_three_superwrong']=KtypeThreeLoaded[twodasage,onedasage,twodasage,7]
+                        g_all_info[i]['s_HisOutput1']=KtypeThreeLoaded[twodasage,onedasage,twodasage,4]
+
+                        if((now)!=Last20_K_Data[i,6,19-ii]):
+                            g_all_info[i]['s_2dayagetype']=onedasage
+                            g_all_info[i]['s_1dayagetype']=today
+                        else:
+                            g_all_info[i]['s_2dayagetype']=twodasage
+                            g_all_info[i]['s_1dayagetype']=onedasage
+
+
+                        '''
+
+                        g_all_info[i]['s_2dayagetype']=twodasage
+                        g_all_info[i]['s_1dayagetype']=onedasage            
+
+
+                        break
+
         
             else:
                 #这里讲道理不会走到（用assert试试看）
