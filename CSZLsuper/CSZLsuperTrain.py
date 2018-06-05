@@ -590,48 +590,48 @@ def CSZL_PosProp():
         stop5=True
         stop1=True
 
+        #新建一个区间测试
         section5=SectionCal(5)
 
         #有效数据
         avcounter=0
         for ii in range(z):
+            #以逆的序列
             cur_high=All_K_Data[hisdata_index,2,(z-1-ii)]
             cur_low=All_K_Data[hisdata_index,4,(z-1-ii)]
             cur_price=All_K_Data[hisdata_index,3,(z-1-ii)]
 
             cur_date=All_K_Data[hisdata_index,6,(z-1-ii)]
 
-            if(cur_high!=0 and cur_low!=0):                
-                avcounter+=1
-            else:
-                continue
+            if(cur_high!=0 and cur_low!=0):
+                #TODO有时间用栈改
+                if(cur_high>highall):
+                    highall=cur_high
+                if(cur_low<lowall):
+                    lowall=cur_low
 
-            
-            section5.Add(All_K_Data[hisdata_index,:,(z-1-ii)])
-        
-            #TODO有时间用栈改
-            if(cur_high>highall):
-                highall=cur_high
-            if(cur_low<lowall):
-                lowall=cur_low
+                if(avcounter>0 and stop1):
+                    lastdata=cur_price
+                    stop1=False
 
-            if(avcounter>0 and stop1):
-                lastdata=cur_price
-                stop1=False
-
-            if(avcounter>5 and stop5):
-                high5=highall
-                low5=lowall
-                stop5=False
+                if(avcounter>5 and stop5):
+                    high5=highall
+                    low5=lowall
+                    stop5=False
      
-            if(avcounter>166 and stop166):
-                high166=highall
-                low166=lowall
-                stop166=False
-            if(avcounter>466 and stop666):
-                high666=highall
-                low666=lowall
-                stop666=False
+                if(avcounter>166 and stop166):
+                    high166=highall
+                    low166=lowall
+                    stop166=False
+                if(avcounter>466 and stop666):
+                    high666=highall
+                    low666=lowall
+                    stop666=False          
+                avcounter+=1      
+        
+
+            #以正的序列
+            section5.Add(All_K_Data[hisdata_index,:,ii])
 
             test=section5.Max()
 
@@ -653,6 +653,8 @@ def CSZL_PosProp():
         PosProp[i,10]=pos_cal(PosProp[i,3],PosProp[i,4],lastdata)
         PosProp[i,11]=pos_cal(PosProp[i,5],PosProp[i,6],lastdata)
 
+        del section5
+
         hisdata_index+=1
 
 class SectionCal(object):
@@ -662,8 +664,16 @@ class SectionCal(object):
     Section_index=0
     Section_long=0
 
+    #用来看结果的
+    Section_cur=0
+    #用来记录最后一天的位置的
+    Section_last=0   
+
     #初始化统计区间
     SectionData=[]
+    #5档值记录
+    SectionCounter=[]
+
     def __init__(self,long):
         #code day high low
         self.SectionData=np.zeros((long,7),dtype=float)
@@ -674,19 +684,32 @@ class SectionCal(object):
 
         max_del=self.SectionData[self.Section_index,2]
         min_del=self.SectionData[self.Section_index,4]
+        self.Section_cur=self.SectionData[self.Section_index,3]
+
+
         if max_del==self.Section_max:
             self.SectionData[self.Section_index,2]=0
             buf_section=self.SectionData[:,2]
             self.Section_max=max(buf_section)
-        
+        if min_del==self.Section_min:
+            self.SectionData[self.Section_index,4]=9999
+            buf_section=self.SectionData[:,4]
+            self.Section_min=min(buf_section)    
+
+
         i=0
         #将输入数据完整复制
         for singledata in data:           
             self.SectionData[self.Section_index,i]=singledata
             i+=1
+
+        self.Section_last=self.SectionData[self.Section_index,3]
         #更新最大值
         if self.SectionData[self.Section_index,2]>self.Section_max:
             self.Section_max=self.SectionData[self.Section_index,2]
+        #更新最小值
+        if self.SectionData[self.Section_index,4]<self.Section_min:
+            self.Section_min=self.SectionData[self.Section_index,4]
 
 
         if self.Section_index>=(self.Section_long-1):
@@ -694,7 +717,14 @@ class SectionCal(object):
         else:
             self.Section_index+=1
 
-
+    def GetPos(self):
+        sectionall=self.Section_max-self.Section_min
+        if self.Section_cur!=0 and sectionall!=0:
+            return (self.Section_cur-self.Section_min)/(sectionall)
+        else:
+            return 0
+    def GetValue(self):
+        return self.Section_last
 
     def Max(self):
         return self.Section_max
