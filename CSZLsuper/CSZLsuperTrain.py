@@ -548,6 +548,8 @@ def CSZL_PosProp():
     #取出历史数据名称列表用于后面找不到位置时进行的搜索
     CodeList=All_K_Data[:,0,0]
 
+    updatecounter=0
+
     for i in range(x):
         if(i%30==0):
             print(i)
@@ -575,6 +577,45 @@ def CSZL_PosProp():
 
         PosProp[i,0]=zzz
 
+        if(zzz==600000):
+            fsdfse=5
+
+        #回测逻辑
+        #新建一个区间测试
+        section5=SectionCal(5)
+        #新建5个计数器用来记录5个位置的值
+        SectionCounter=[]
+        for ii in range(5):
+            temp=Z_Counter()
+            SectionCounter.append(temp)
+            del temp
+
+        for ii in range(1,z-1):
+            if All_K_Data[hisdata_index,3,ii+1]==0:
+                break
+
+            #以正的序列
+            section5.Add(All_K_Data[hisdata_index,:,ii])
+            bufpos=section5.GetPos()
+            if(bufpos!=0):
+                #将位置信息放入对应计数器
+                for iii in range(5):
+                    if(bufpos<=((iii+1)*0.2)):
+                        #剔除异常值(如果上个交易日涨停或跌停显然不能计入数据)
+                        bufpercent1=(All_K_Data[hisdata_index,3,ii]-All_K_Data[hisdata_index,3,ii-1])/All_K_Data[hisdata_index,3,ii-1]
+                        bufpercent2=(All_K_Data[hisdata_index,3,ii+1]-All_K_Data[hisdata_index,3,ii])/All_K_Data[hisdata_index,3,ii]
+                        if(bufpercent1<0.095 and bufpercent1>(-0.095)):
+                            SectionCounter[iii].Add(bufpercent2)
+
+                        break
+
+            test=section5.Max()
+
+            safsef=4
+
+        del section5
+
+        #快速计算当前处于的平均位置
         highall=0
         lowall=65534    
         high666=0
@@ -590,8 +631,6 @@ def CSZL_PosProp():
         stop5=True
         stop1=True
 
-        #新建一个区间测试
-        section5=SectionCal(5)
 
         #有效数据
         avcounter=0
@@ -603,40 +642,35 @@ def CSZL_PosProp():
 
             cur_date=All_K_Data[hisdata_index,6,(z-1-ii)]
 
-            if(cur_high!=0 and cur_low!=0):
-                #TODO有时间用栈改
-                if(cur_high>highall):
-                    highall=cur_high
-                if(cur_low<lowall):
-                    lowall=cur_low
-
-                if(avcounter>0 and stop1):
-                    lastdata=cur_price
-                    stop1=False
-
-                if(avcounter>5 and stop5):
-                    high5=highall
-                    low5=lowall
-                    stop5=False
-     
-                if(avcounter>166 and stop166):
-                    high166=highall
-                    low166=lowall
-                    stop166=False
-                if(avcounter>466 and stop666):
-                    high666=highall
-                    low666=lowall
-                    stop666=False          
-                avcounter+=1      
+            if(cur_high!=0 and cur_low!=0):                
+                avcounter+=1
+            else:
+                continue     
         
+            #TODO有时间用栈改
+            if(cur_high>highall):
+                highall=cur_high
+            if(cur_low<lowall):
+                lowall=cur_low
 
-            #以正的序列
-            section5.Add(All_K_Data[hisdata_index,:,ii])
+            if(avcounter>0 and stop1):
+                lastdata=cur_price
+                stop1=False
 
-            test=section5.Max()
-
-            safsef=4
-
+            if(avcounter>5 and stop5):
+                high5=highall
+                low5=lowall
+                stop5=False
+     
+            if(avcounter>166 and stop166):
+                high166=highall
+                low166=lowall
+                stop166=False
+            if(avcounter>466 and stop666):
+                high666=highall
+                low666=lowall
+                stop666=False    
+        
         PosProp[i,1]=highall
         PosProp[i,2]=lowall
         PosProp[i,3]=high666
@@ -646,14 +680,11 @@ def CSZL_PosProp():
         PosProp[i,7]=high5
         PosProp[i,8]=low5
         
-        #调试
-        if(zzz==603659):
-            sdfsdf=6
         PosProp[i,9]=pos_cal(PosProp[i,1],PosProp[i,2],lastdata)
         PosProp[i,10]=pos_cal(PosProp[i,3],PosProp[i,4],lastdata)
         PosProp[i,11]=pos_cal(PosProp[i,5],PosProp[i,6],lastdata)
 
-        del section5
+
 
         hisdata_index+=1
 
@@ -664,9 +695,7 @@ class SectionCal(object):
     Section_index=0
     Section_long=0
 
-    #用来看结果的
-    Section_cur=0
-    #用来记录最后一天的位置的
+    #最后一天的指
     Section_last=0   
 
     #初始化统计区间
@@ -684,7 +713,6 @@ class SectionCal(object):
 
         max_del=self.SectionData[self.Section_index,2]
         min_del=self.SectionData[self.Section_index,4]
-        self.Section_cur=self.SectionData[self.Section_index,3]
 
 
         if max_del==self.Section_max:
@@ -719,12 +747,10 @@ class SectionCal(object):
 
     def GetPos(self):
         sectionall=self.Section_max-self.Section_min
-        if self.Section_cur!=0 and sectionall!=0:
-            return (self.Section_cur-self.Section_min)/(sectionall)
+        if self.Section_last!=0 and sectionall!=0:
+            return (self.Section_last-self.Section_min)/(sectionall)
         else:
             return 0
-    def GetValue(self):
-        return self.Section_last
 
     def Max(self):
         return self.Section_max
