@@ -549,6 +549,7 @@ def CSZL_PosProp():
     CodeList=All_K_Data[:,0,0]
 
     updatecounter=0
+    searchcounter=0
 
     #新建5个计数器用来记录5个位置的值
     SectionCounter=[]
@@ -558,7 +559,7 @@ def CSZL_PosProp():
         del temp
 
     SectionCounter2=[]
-    for ii in range(5):
+    for ii in range(13*5):
         temp=Z_Counter()
         SectionCounter2.append(temp)
         del temp
@@ -606,7 +607,7 @@ def CSZL_PosProp():
                 break
 
             #以正的序列
-            section5.Add(All_K_Data[hisdata_index,:,ii])
+            #section5.Add(All_K_Data[hisdata_index,:,ii])
             section166.Add(All_K_Data[hisdata_index,:,ii])
             bufpos=section166.GetPos()
             if(bufpos!=0):
@@ -616,19 +617,25 @@ def CSZL_PosProp():
                         #剔除异常值(如果上个交易日涨停或跌停显然不能计入数据)
                         bufpercent1=(All_K_Data[hisdata_index,3,ii]-All_K_Data[hisdata_index,3,ii-1])/All_K_Data[hisdata_index,3,ii-1]
                         bufpercent2=(All_K_Data[hisdata_index,3,ii+1]-All_K_Data[hisdata_index,3,ii])/All_K_Data[hisdata_index,3,ii]
-                        if(bufpercent1<0.095 and bufpercent1>(-0.095)):
-                            
+                        if(bufpercent1<0.095 and bufpercent1>(-0.095) and (bufpercent1<0.049 or bufpercent1>0.051) and (bufpercent1<-0.051 or bufpercent1>-0.049)):
+                            cur_shape=CSZLsuperGET.k_type_def(All_K_Data,hisdata_index,ii,0.005)
+
+                            if(bufpercent2<0.11 and bufpercent2>-0.11):
+                                SectionCounter2[cur_shape+iii*13].Add(bufpercent2)
+
                             #if(bufpercent2>0.095):
                                 #SectionCounter2[iii].Add(bufpercent2)
                             #elif(bufpercent2<-0.095):
-                            SectionCounter[iii].Add(bufpercent2)
+                                #SectionCounter[iii].Add(bufpercent2)
                         break
 
             test=section5.Max()
 
             safsef=4
 
-        if(section5.Count()>1000):
+        if(i>3000):
+            for ii in range(13*5):
+                asdad2=SectionCounter2[ii].Average()
             asdad=4
         del section5
 
