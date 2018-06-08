@@ -564,6 +564,7 @@ def CSZL_PosProp():
         SectionCounter2.append(temp)
         del temp
 
+
     for i in range(x):
         if(i%30==0):
             print(i)
@@ -596,9 +597,9 @@ def CSZL_PosProp():
 
         #回测逻辑
         #新建一个区间测试
-        section5=SectionCal(5)
+        #section5=SectionCal(5)
 
-        section166=SectionCal(166)
+        section166=SectionCal(20)
 
 
 
@@ -610,34 +611,51 @@ def CSZL_PosProp():
             #section5.Add(All_K_Data[hisdata_index,:,ii])
             section166.Add(All_K_Data[hisdata_index,:,ii])
             bufpos=section166.GetPos()
-            if(bufpos!=0):
+            date=All_K_Data[hisdata_index,6,ii]
+            
+
+            if(bufpos!=0 and (20160000<date)):
                 #将位置信息放入对应计数器
                 for iii in range(5):
                     if(bufpos<=((iii+1)*0.2)):
                         #剔除异常值(如果上个交易日涨停或跌停显然不能计入数据)
                         bufpercent1=(All_K_Data[hisdata_index,3,ii]-All_K_Data[hisdata_index,3,ii-1])/All_K_Data[hisdata_index,3,ii-1]
                         bufpercent2=(All_K_Data[hisdata_index,3,ii+1]-All_K_Data[hisdata_index,3,ii])/All_K_Data[hisdata_index,3,ii]
-                        if(bufpercent1<0.095 and bufpercent1>(-0.095) and (bufpercent1<0.049 or bufpercent1>0.051) and (bufpercent1<-0.051 or bufpercent1>-0.049)):
+                        bufpercent3=(All_K_Data[hisdata_index,4,ii+1]-All_K_Data[hisdata_index,3,ii])/All_K_Data[hisdata_index,3,ii]
+                        dy=(int)(date/10000)                     
+                        dm=(int)((date-(dy)*10000)/100)
+                        dd=(int)(date%100)
+
+                        date_from = datetime.datetime(dy,dm ,dd , 00, 00, 00)
+                        dayofweek=date_from.weekday()
+
+                        if(bufpercent1<0.095 and bufpercent1>(-0.095) and (bufpercent1<0.049 or bufpercent1>0.051) and (bufpercent1<-0.051 or bufpercent1>-0.049) and dayofweek==4):
                             cur_shape=CSZLsuperGET.k_type_def(All_K_Data,hisdata_index,ii,0.005)
 
-                            if(bufpercent2<0.11 and bufpercent2>-0.11):
-                                SectionCounter2[cur_shape+iii*13].Add(bufpercent2)
-
+                            if(bufpercent2<0.11 and bufpercent2>-0.11 ):
+                                if(bufpercent3>0.01):
+                                    SectionCounter2[cur_shape+iii*13].Add(0.08)
+                                else:
+                                    SectionCounter2[cur_shape+iii*13].Add(bufpercent2)
                             #if(bufpercent2>0.095):
                                 #SectionCounter2[iii].Add(bufpercent2)
                             #elif(bufpercent2<-0.095):
                                 #SectionCounter[iii].Add(bufpercent2)
                         break
 
-            test=section5.Max()
+            #test=section5.Max()
 
             safsef=4
 
         if(i>3000):
-            for ii in range(13*5):
-                asdad2=SectionCounter2[ii].Average()
-            asdad=4
-        del section5
+            for ii in range(5):
+                for iii in range(13):
+                    asdad2=SectionCounter2[ii*13+iii].Average()
+                    print("%2.4f " % asdad2,end="")
+
+                print("\n")
+
+        del section166
 
         if False:
             #快速计算当前处于的平均位置
