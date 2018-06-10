@@ -696,9 +696,9 @@ def CSZL_ValueCal(StockResult,StockINFO):
         LastValue-=0.75
 
 
-    if (StockResult['s_plus']>=2.5) and (StockResult['s_plus']<6):
-        LastValue+=StockResult['s_plus']
-    
+    if ((-10)<StockResult['s_plus']<(-5)):
+        #LastValue-=StockResult['s_plus']
+        LastValue+=5
         '''
         if (cur_mktcap<500000):
             LastValue+=2
@@ -833,11 +833,16 @@ def CSZL_Kanalyseupdate(z_info_source,z_result_source):
     global KtypeThreeLoaded
 
     try:
-        if(z_info_source['s_code']=='603659'):
-            sdfefs=4
+
         twodasage=int(z_info_source['s_2dayagetype'])
         onedasage=int(z_info_source['s_1dayagetype'])
         today=int(z_result_source['s_curztype'])
+        '''
+        if(z_info_source['s_code']=='603880'):
+            sdfefs=4
+        if(onedasage==13):
+            sdfefs=4
+        '''
         if(KtypeThreeLoaded[twodasage,onedasage,today,0]!=0):
             z_info_source['K_three_amount']=KtypeThreeLoaded[twodasage,onedasage,today,0]
             z_info_source['K_three_super']=KtypeThreeLoaded[twodasage,onedasage,today,5]
@@ -946,13 +951,25 @@ def CSZL_HistoryDataAnalysis():
             assert zzz==zzz2
 
             if(zzz==zzz2 and zzz!=0):
-          
-                g_all_info[i]['s_RP']=int(random.random()*100)
-
-
                 #初始化收盘价以及3日形态计数
                 g_all_info[i]['s_2dayagetype']=0
                 g_all_info[i]['s_1dayagetype']=0
+          
+                g_all_info[i]['s_RP']=int(random.random()*100)
+
+                bufmaxminlist=Last20_K_Data[i,2,:]
+                bufmaxminlist2=bufmaxminlist[bufmaxminlist>0]
+                if(bufmaxminlist2.size==0):
+                    continue
+                sectionmax=max(bufmaxminlist2)
+
+                bufmaxminlist=Last20_K_Data[i,4,:]
+                bufmaxminlist2=bufmaxminlist[bufmaxminlist>0]
+                sectionmin=min(bufmaxminlist2)
+
+                
+
+
                 #如果5日内不停牌
                 for ii in range(15):
 
@@ -980,9 +997,17 @@ def CSZL_HistoryDataAnalysis():
                         '''
 
                         g_all_info[i]['s_2dayagetype']=twodasage
-                        g_all_info[i]['s_1dayagetype']=onedasage            
+                        g_all_info[i]['s_1dayagetype']=onedasage           
+                        '''
+                        cur_close=Last20_K_Data[i,3,19-ii]
+                        last_close=Last20_K_Data[i,3,18-ii]
+                        last_plus=(cur_close-last_close)/last_close
+                        sectionpos=(cur_close-sectionmin)/(sectionmax-sectionmin)
+                        
+                        if((0.03<last_plus<0.07)and (0.6<sectionpos or 0.2>sectionpos)):
 
-
+                            print("%6d %2.2f " % (zzz,cur_close))
+                        '''
                         break
 
         
