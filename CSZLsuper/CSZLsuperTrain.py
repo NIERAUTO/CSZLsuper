@@ -755,6 +755,82 @@ def CSZL_PosProp():
 
         hisdata_index+=1
 
+def CSZL_CodelistToDatelist():
+    global All_K_Data
+
+   
+    x=All_K_Data.shape[0]    #4000
+    y=All_K_Data.shape[1]    #7
+    z=All_K_Data.shape[2]    #2000
+
+    # 日期 代码 信息
+    DateBasedList=np.zeros((z,x,y),dtype=float)
+
+
+    bufflist=ts.get_k_data('000001',start='2010-01-01', end='2018-03-16', index=True) #深圳综合指数
+
+    datelist=bufflist.date
+
+    searchcounter=0
+    updatecounter=0
+
+    i=0
+    for singledatezz in bufflist.date:
+
+
+        changedate=time.strptime(singledatezz,"%Y-%m-%d")
+        changedate2=time.strftime("%Y%m%d",changedate)
+        changedate3=int(changedate2)
+        
+        DateBasedList[(i,0,0)]=changedate3
+
+        date_index=0
+        for ii in range(x):
+            cur_changedata=All_K_Data[ii,6,date_index]
+            if(changedate3==cur_changedata):
+                DateBasedList[i,ii,:]=All_K_Data[ii,:,date_index]
+
+                date_index+=1
+            else:
+                
+                bufsearch=All_K_Data[ii,6,:]
+                #从历史数据列表中寻找是否有对应值
+                buff=np.argwhere(bufsearch==changedate3)
+                #如果有指则重新定义历史数据位置
+                if(buff!=None):
+                    foundindex=int(buff)
+                    date_index=foundindex
+                    zzz2=All_K_Data[(ii,6,date_index)]
+
+                    DateBasedList[i,ii,:]=All_K_Data[ii,:,date_index]
+                    date_index+=1
+                    searchcounter+=1
+                else:
+                    updatecounter+=1
+                    continue
+
+
+                
+
+
+
+        i+=1
+
+    for ii in  range(z):
+        print(datelist[ii])
+
+    startdate=20100126
+    enddate=20180126
+
+
+
+    for ii in  range(z):
+        #这里暂时拿特定一个数据来作为日期检测的种子,之后会寻找更加合适的方法1328
+        if(All_K_Data[(1328,6,ii)]>=startdate and All_K_Data[(1328,6,ii)]<=enddate ):
+            TrainDate.append(All_K_Data[(1,6,ii)])
+
+
+
 class SectionCal(object):
     Section_max=0
     Section_min=9999
@@ -1126,6 +1202,9 @@ def CSZL_TrainMainNEW(g_all_resultin):
 
     #初始化训练周期
     TrainDate=CSZL_TrainInitNEW()
+
+    #改为以date计算的list
+    CSZL_CodelistToDatelist()
 
     #初始化位置属性
     CSZL_PosProp()

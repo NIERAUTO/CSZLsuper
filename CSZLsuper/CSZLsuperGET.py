@@ -685,6 +685,8 @@ def CSZL_ValueCal(StockResult,StockINFO):
     cur_mktcap=StockResult['s_mktcap']
     cur_zdl=StockINFO['s_HisOutput1']
     cur_RP=StockINFO['s_RP']
+    cur_pos=StockINFO['s_Posofall']
+
 
     LastValue=0
 
@@ -696,7 +698,7 @@ def CSZL_ValueCal(StockResult,StockINFO):
         LastValue-=0.75
 
 
-    if ((-10)<StockResult['s_plus']<(-5)):
+    if ((3)<StockResult['s_plus']<(7)and (cur_pos<0.2)):
         #LastValue-=StockResult['s_plus']
         LastValue+=5
         '''
@@ -997,19 +999,23 @@ def CSZL_HistoryDataAnalysis():
                         '''
 
                         g_all_info[i]['s_2dayagetype']=twodasage
-                        g_all_info[i]['s_1dayagetype']=onedasage           
-                        '''
+                        g_all_info[i]['s_1dayagetype']=onedasage  
+
+
+
                         cur_close=Last20_K_Data[i,3,19-ii]
                         last_close=Last20_K_Data[i,3,18-ii]
                         last_plus=(cur_close-last_close)/last_close
                         sectionpos=(cur_close-sectionmin)/(sectionmax-sectionmin)
-                        
+
+                        g_all_info[i]['s_Posofall']=sectionpos
+                        '''
                         if((0.03<last_plus<0.07)and (0.6<sectionpos or 0.2>sectionpos)):
 
                             print("%6d %2.2f " % (zzz,cur_close))
-                        '''
-                        break
 
+                        break
+                        '''
         
             else:
                 #这里讲道理不会走到（用assert试试看）
@@ -1034,7 +1040,7 @@ def CSZL_HistoryDataAnalysis():
 
             #g_all_info[z]['s_HisOutput1']=HistoryAnaLoaded[z,2]
 
-            g_all_info[z]['s_Posofall']=HistoryAnaLoaded[z,5]    #当前位置相对于历史位置
+            #g_all_info[z]['s_Posofall']=HistoryAnaLoaded[z,5]    #当前位置相对于历史位置
             g_all_info[z]['s_Posof666']=HistoryAnaLoaded[z,6]     #当前位置相对于666日位置
             g_all_info[z]['s_Posof166']=HistoryAnaLoaded[z,7]     #当前位置相对于166日位置
 
