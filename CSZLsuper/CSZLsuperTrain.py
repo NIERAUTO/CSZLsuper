@@ -842,6 +842,14 @@ def CSZL_DatebasedPosProp():
     z=DateBasedList.shape[2]    #7  
 
     
+    #新建5个计数器用来记录5个位置的值
+    SectionCounter=[]
+    for ii in range(20):
+        temp=Z_Counter()
+        SectionCounter.append(temp)
+        del temp
+
+
     section3=20
     section2=5
 
@@ -851,6 +859,8 @@ def CSZL_DatebasedPosProp():
         temp=Z_Counter()
         SectionCounter2.append(temp)
         del temp
+
+    avacounter=0
 
     for i in range(1,x-1):
         cur_date=DateBasedList[i,0,0]
@@ -863,12 +873,15 @@ def CSZL_DatebasedPosProp():
         todaylist2=todaylist[0]
 
 
-        if(cur_date>20160100):
+        if(cur_date>20140101):
             for cur_index in todaylist2:
                 code=DateBasedList[i,cur_index,6]
                 last_close=DateBasedList[i-1,cur_index,3]
                 cur_close=DateBasedList[i,cur_index,3]
                 next_close=DateBasedList[i+1,cur_index,3]
+
+                if(last_close==0 or cur_close==0 or next_close==0):
+                    continue
 
                 today_plus=(cur_close-last_close)/last_close
                 tomorrow_plus=(next_close-cur_close)/cur_close
@@ -890,16 +903,26 @@ def CSZL_DatebasedPosProp():
                         if(bufintpos2>19):
                             bufintpos2=19
             
-                        SectionCounter2[dayofweek*section3+bufintpos2]
+                        SectionCounter[bufintpos2].Add(tomorrow_plus)
 
+                       
                 sfsefsef=4
-            
-        if(i>100):
+
+
+            for i2 in range(20):
+                bufper=SectionCounter[i2].Average()
+                if bufper!=0:
+                    SectionCounter2[dayofweek*section3+i2].Add(bufper)
+                SectionCounter[i2].Clr()
+
+            avacounter+=1
+
+        if(avacounter>1000):
 
             for ii in range(section2):
                 for iii in range(section3):
-                    asdad3=SectionCounter2[ii*section3+iii+iiii*section2*section3].Average()
-                    asdad2=SectionCounter2[ii*section3+iii+iiii*section2*section3].Count()
+                    asdad3=SectionCounter2[ii*section3+iii].Average()
+                    asdad2=SectionCounter2[ii*section3+iii].Count()
                     print("%2.4f %d " % (asdad3,asdad2),end="")
 
                     '''
@@ -915,7 +938,7 @@ def CSZL_DatebasedPosProp():
 
                 print("\n")
 
-        del section20
+        sadfsef=6
 
 
 
