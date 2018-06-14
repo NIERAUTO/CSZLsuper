@@ -767,16 +767,15 @@ def CSZL_CodelistToDatelist():
     DateBasedList=np.zeros((z,x,y),dtype=float)
 
 
-    bufflist=ts.get_k_data('000001',start='2010-01-01', end='2018-03-16', index=True) #深圳综合指数
+    bufflist=ts.get_k_data('000001',start='2010-03-01', end='2018-06-13', index=True) 
 
-    datelist=bufflist.date
+    datelist=bufflist.date.tail(z)
 
     searchcounter=0
     updatecounter=0
 
     i=0
-    for singledatezz in bufflist.date:
-
+    for singledatezz in datelist:
 
         changedate=time.strptime(singledatezz,"%Y-%m-%d")
         changedate2=time.strftime("%Y%m%d",changedate)
@@ -789,8 +788,8 @@ def CSZL_CodelistToDatelist():
             cur_changedata=All_K_Data[ii,6,date_index]
             if(changedate3==cur_changedata):
                 DateBasedList[i,ii,:]=All_K_Data[ii,:,date_index]
-
-                date_index+=1
+                DateBasedList[i,ii,6]=All_K_Data[ii,0,0]
+                
             else:
                 
                 bufsearch=All_K_Data[ii,6,:]
@@ -803,31 +802,122 @@ def CSZL_CodelistToDatelist():
                     zzz2=All_K_Data[(ii,6,date_index)]
 
                     DateBasedList[i,ii,:]=All_K_Data[ii,:,date_index]
-                    date_index+=1
+                    DateBasedList[i,ii,6]=All_K_Data[ii,0,0]
+                    
                     searchcounter+=1
                 else:
+                    
                     updatecounter+=1
                     continue
-
-
-                
-
-
-
         i+=1
+        if(i>1999):
+            break;
 
-    for ii in  range(z):
-        print(datelist[ii])
+    '''
+    for i in  range(z):
+        print(DateBasedList[i,0,0])
+        for ii in  range(x):
+            asdad3=DateBasedList[i,ii,3]
+            asdad2=DateBasedList[i,ii,6]
+            print("%2.4f %d " % (asdad3,asdad2))
+            
+        print("\n")
+    '''
+    cwd = os.getcwd()
 
-    startdate=20100126
-    enddate=20180126
+    txtFileA = cwd + '\\output\\ALL_History_data_Datebased.npy'
+    np.save(txtFileA, DateBasedList)
 
 
+    sdfsdf=5
 
-    for ii in  range(z):
-        #这里暂时拿特定一个数据来作为日期检测的种子,之后会寻找更加合适的方法1328
-        if(All_K_Data[(1328,6,ii)]>=startdate and All_K_Data[(1328,6,ii)]<=enddate ):
-            TrainDate.append(All_K_Data[(1,6,ii)])
+def CSZL_DatebasedPosProp():
+
+    cwd = os.getcwd()
+    txtFileA = cwd + '\\output\\ALL_History_data_Datebased.npy'
+    DateBasedList=np.load(txtFileA)
+
+    x=DateBasedList.shape[0]    #2000
+    y=DateBasedList.shape[1]    #4000
+    z=DateBasedList.shape[2]    #7  
+
+    
+    section3=20
+    section2=5
+
+    SectionCounter2=[]
+
+    for ii in range(section3*section2):
+        temp=Z_Counter()
+        SectionCounter2.append(temp)
+        del temp
+
+    for i in range(1,x-1):
+        cur_date=DateBasedList[i,0,0]
+        counter=DateBasedList[i,:,3]
+        a=np.sum(counter!=0)
+        if(a==0):
+            continue
+
+        todaylist=np.where(counter>0)
+        todaylist2=todaylist[0]
+
+
+        if(cur_date>20160100):
+            for cur_index in todaylist2:
+                code=DateBasedList[i,cur_index,6]
+                last_close=DateBasedList[i-1,cur_index,3]
+                cur_close=DateBasedList[i,cur_index,3]
+                next_close=DateBasedList[i+1,cur_index,3]
+
+                today_plus=(cur_close-last_close)/last_close
+                tomorrow_plus=(next_close-cur_close)/cur_close
+
+                dy=(int)(cur_date/10000)                     
+                dm=(int)((cur_date-(dy)*10000)/100)
+                dd=(int)(cur_date%100)
+
+                date_form = datetime.datetime(dy,dm ,dd , 00, 00, 00)
+                dayofweek=date_form.weekday()
+                
+                if(today_plus<0.095 and today_plus>(-0.095) and (today_plus<0.045 or today_plus>0.055) and (today_plus<-0.055 or today_plus>-0.045)):
+                    if(tomorrow_plus<0.11 and tomorrow_plus>-0.11 ):
+
+                        bufintpos2=(int)(((today_plus*100)+10))
+
+                        if(bufintpos2<0):
+                            bufintpos2=0
+                        if(bufintpos2>19):
+                            bufintpos2=19
+            
+                        SectionCounter2[dayofweek*section3+bufintpos2]
+
+                sfsefsef=4
+            
+        if(i>100):
+
+            for ii in range(section2):
+                for iii in range(section3):
+                    asdad3=SectionCounter2[ii*section3+iii+iiii*section2*section3].Average()
+                    asdad2=SectionCounter2[ii*section3+iii+iiii*section2*section3].Count()
+                    print("%2.4f %d " % (asdad3,asdad2),end="")
+
+                    '''
+                    asdad2=SectionCounter2[ii*20+iii+iiii*5*20].Average()
+                    asdad3=SectionCounter2[ii*20+iii+iiii*5*20].Count()
+                    if(asdad2>0.003):
+                        print("%2.4f %4d " % (asdad2+4,asdad3),end="")
+                    elif(asdad2<-0.001):
+                        print("%2.4f %4d " % (asdad2+9,asdad3),end="")
+                    else:
+                        print("%2.4f %4d " % (asdad2+1,asdad3),end="")
+                    '''
+
+                print("\n")
+
+        del section20
+
+
 
 
 
@@ -1202,6 +1292,8 @@ def CSZL_TrainMainNEW(g_all_resultin):
 
     #初始化训练周期
     TrainDate=CSZL_TrainInitNEW()
+
+    CSZL_DatebasedPosProp()
 
     #改为以date计算的list
     CSZL_CodelistToDatelist()

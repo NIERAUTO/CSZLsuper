@@ -916,9 +916,9 @@ def CSZL_HistoryDataAnalysis():
     if(CSZLsuper.G_mode['K_Data_UpdateModeFlag']):
 
         #获取历史数据
-        #HistoryDataGet(Datas=2000,Path='ALL_History_data')
+        HistoryDataGet(Datas=2000,Path='ALL_History_data')
         #默认获取20天的数据
-        HistoryDataGet()
+        #HistoryDataGet()
         #CSZLsuperGET.HistoryDataGet("2017-04-04",10)
         #HistoryDataInit()
 
@@ -1268,6 +1268,7 @@ def HistoryDataGet(
                 wrongEx=str(ex)
                 Z_LOG_SAVE('HistoryWrongMessage.txt',wrongmessage+wrongEx)
                 print (Exception,":",ex)
+                z-=1
 
         cwd = os.getcwd()
         txtFile = cwd + '\\data\\'+Path
