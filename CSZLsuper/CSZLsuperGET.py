@@ -173,12 +173,13 @@ def CSZL_superINFOupdate():
                         for i in range(cur_long-1):
                             buff_all_index=g_part_result[cur_long-1-i]['s_key']
                             
-                            testt=("%d,%s,%s,%f,%d,%d,%d,%d,%d,%d,%f,%f\n"%(i+1,
+                            testt=("%d,%s,%s,%f,%d,%f,%d,%d,%d,%d,%f,%f\n"%(i+1,
                             str(g_part_result[cur_long-1-i]['s_Cname'],"utf-8"),
                             str(g_part_result[cur_long-1-i]['s_code'],"utf-8"),
                             g_part_result[cur_long-1-i]['s_zValue'],
                             (g_all_info[buff_all_index]['s_HisOutput1']*10000),
-                            g_all_info[buff_all_index]['K_three_amount'],
+                            #g_all_info[buff_all_index]['K_three_amount'],
+                            g_part_result[cur_long-1-i]['s_now'],                            
                             g_all_info[buff_all_index]['K_three_super'],
                             g_all_info[buff_all_index]['K_three_superwrong'],
                             g_part_result[cur_long-1-i]['s_curztype'],
@@ -686,7 +687,7 @@ def CSZL_ValueCal(StockResult,StockINFO):
     cur_zdl=StockINFO['s_HisOutput1']
     cur_RP=StockINFO['s_RP']
     cur_pos=StockINFO['s_Posofall']
-
+    cur_ztype=StockResult['s_curztype']
 
     LastValue=0
 
@@ -698,9 +699,14 @@ def CSZL_ValueCal(StockResult,StockINFO):
         LastValue-=0.75
 
 
-    if ((3)<StockResult['s_plus']<(7)and (cur_pos<0.2)):
+    if ((-9.4)<StockResult['s_plus']<(-2)):
         #LastValue-=StockResult['s_plus']
-        LastValue+=5
+        LastValue+=2
+        if(cur_pos<0.2):
+            LastValue+=4
+    if(cur_ztype==9):
+        LastValue+=2
+
         '''
         if (cur_mktcap<500000):
             LastValue+=2
@@ -916,9 +922,9 @@ def CSZL_HistoryDataAnalysis():
     if(CSZLsuper.G_mode['K_Data_UpdateModeFlag']):
 
         #获取历史数据
-        HistoryDataGet(Datas=2000,Path='ALL_History_data')
+        #HistoryDataGet(Datas=2000,Path='ALL_History_data')
         #默认获取20天的数据
-        #HistoryDataGet()
+        HistoryDataGet()
         #CSZLsuperGET.HistoryDataGet("2017-04-04",10)
         #HistoryDataInit()
 

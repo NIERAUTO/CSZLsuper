@@ -940,9 +940,155 @@ def CSZL_DatebasedPosProp():
 
         sadfsef=6
 
+def CSZL_DatebasedDayRankProp():
+
+    cwd = os.getcwd()
+    txtFileA = cwd + '\\output\\ALL_History_data_Datebased.npy'
+    DateBasedList=np.load(txtFileA)
+
+    x=DateBasedList.shape[0]    #2000
+    y=DateBasedList.shape[1]    #4000
+    z=DateBasedList.shape[2]    #7  
+
+    
+    #新建5个计数器用来记录5个位置的值
+    SectionCounter=[]
+    for ii in range(20):
+        temp=Z_Counter()
+        SectionCounter.append(temp)
+        del temp
+
+
+    section3=20
+    section2=5
+
+    SectionCounter2=[]
+
+    for ii in range(section3*section2):
+        temp=Z_Counter()
+        SectionCounter2.append(temp)
+        del temp
+
+    avacounter=0
 
 
 
+    for i in range(1,x-1):
+        cur_date=DateBasedList[i,0,0]
+        counter=DateBasedList[i,:,3]
+        a=np.sum(counter!=0)
+        if(a==0):
+            continue
+
+        todaylist=np.where(counter>0)
+        todaylist2=todaylist[0]
+
+
+
+        if(cur_date>20140101):
+            #新建所有数据的空数组用于放置百分比数据
+            RankList_base=np.zeros((y),dtype=float)
+            #先算出每个数据的百分比
+            for cur_index in todaylist2:
+                code=DateBasedList[i,cur_index,6]
+                last_close=DateBasedList[i-1,cur_index,3]
+                cur_close=DateBasedList[i,cur_index,3]
+
+                if(last_close==0 or cur_close==0 ):
+                    continue
+
+                today_plus=(cur_close-last_close)/last_close
+                RankList_base[cur_index]=today_plus
+
+            #找出当天有意义的数据放入待排序列表
+            plus_element_list=RankList_base[todaylist2]
+            #新建一个空的列表用于放置所有排序后的数据
+            RankList=np.zeros((y),dtype=int)
+            #将有意义数据排序并得到index值
+            buf_ranklist=plus_element_list.argsort()
+
+            #zzztest=DateBasedList[i,todaylist2[buf_ranklist[1]],6];
+            #zzztest2=DateBasedList[i,todaylist2[buf_ranklist[2880]],6];
+
+            #循环所有有意义数据并将排名值放入原列表(包含无意义值)中的对应位置
+            for cur_i in range(0,buf_ranklist.shape[0]):               
+                #原列表中的 在buf_ranklist的第cur_i个值对应的在todaylist2(有意义对应原列表位置)里面的位置的值是cur_i
+                RankList[todaylist2[buf_ranklist[cur_i]]]=cur_i
+
+
+            
+            #np.set_printoptions(precision=2,suppress=True,threshold=10000)
+            #print(RankList_base)
+ 
+            #print("\n")
+            #print(RankList)  
+
+          
+
+            for cur_index in todaylist2:
+                code=DateBasedList[i,cur_index,6]
+                last_close=DateBasedList[i-1,cur_index,3]
+                cur_close=DateBasedList[i,cur_index,3]
+                next_close=DateBasedList[i+1,cur_index,3]
+                cur_rank=RankList[cur_index]
+                #当日的排名0~1，为了让最大值小于1往分母加1
+                cur_rank_per=float(cur_rank)/(float)(todaylist2.shape[0]+1)
+                fom_per=int(cur_rank_per*20)
+                #if(fom_per==10):
+                    #sdfasdfasf=9
+
+                if(last_close==0 or cur_close==0 or next_close==0):
+                    continue
+
+                today_plus=(cur_close-last_close)/last_close
+                tomorrow_plus=(next_close-cur_close)/cur_close
+
+                dy=(int)(cur_date/10000)                     
+                dm=(int)((cur_date-(dy)*10000)/100)
+                dd=(int)(cur_date%100)
+
+                date_form = datetime.datetime(dy,dm ,dd , 00, 00, 00)
+                dayofweek=date_form.weekday()
+                
+                if(today_plus<0.095 and today_plus>(-0.095) and (today_plus<0.045 or today_plus>0.055) and (today_plus<-0.055 or today_plus>-0.045)):
+                    if(tomorrow_plus<0.11 and tomorrow_plus>-0.11 ):
+
+            
+                        SectionCounter[fom_per].Add(tomorrow_plus)
+
+                       
+                sfsefsef=4
+
+            for i2 in range(20):
+                bufper=SectionCounter[i2].Average()
+                if bufper!=0:
+                    SectionCounter2[dayofweek*section3+i2].Add(bufper)
+                SectionCounter[i2].Clr()
+
+            avacounter+=1
+
+        if(avacounter>1000):
+
+            for ii in range(section2):
+                for iii in range(section3):
+                    asdad3=SectionCounter2[ii*section3+iii].Average()
+                    asdad2=SectionCounter2[ii*section3+iii].Count()
+                    print("%2.4f %d " % (asdad3,asdad2),end="")
+
+                    '''
+                    asdad2=SectionCounter2[ii*20+iii+iiii*5*20].Average()
+                    asdad3=SectionCounter2[ii*20+iii+iiii*5*20].Count()
+                    if(asdad2>0.003):
+                        print("%2.4f %4d " % (asdad2+4,asdad3),end="")
+                    elif(asdad2<-0.001):
+                        print("%2.4f %4d " % (asdad2+9,asdad3),end="")
+                    else:
+                        print("%2.4f %4d " % (asdad2+1,asdad3),end="")
+                    '''
+
+                print("\n")
+
+        sadfsef=6
 
 class SectionCal(object):
     Section_max=0
@@ -1316,7 +1462,7 @@ def CSZL_TrainMainNEW(g_all_resultin):
     #初始化训练周期
     TrainDate=CSZL_TrainInitNEW()
 
-    CSZL_DatebasedPosProp()
+    CSZL_DatebasedDayRankProp()
 
     #改为以date计算的list
     CSZL_CodelistToDatelist()
