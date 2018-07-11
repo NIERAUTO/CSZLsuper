@@ -20,6 +20,7 @@ import math
 import re
 
 import ctypes
+import CSZLsuperTrain
 
 z_init_nplist=[]
 g_all_result=[] #实时全局数据表
@@ -928,6 +929,14 @@ def CSZL_HistoryDataAnalysis():
         #CSZLsuperGET.HistoryDataGet("2017-04-04",10)
         #HistoryDataInit()
 
+        #读取刚刚更新的20日内的k线数据
+        '''
+        TempPath = cwd + '\\data\\'+'History_data.npy'
+        Last20_K_Data=np.load(TempPath)
+
+        CSZL_CodelistToDatelist2(Last20_K_Data)
+        '''
+
     #读取历史分析的k线模块数据
     TempPath = cwd + '\\output\\KtypeThree.npy'
     KtypeThreeLoaded=np.load(TempPath)
@@ -939,6 +948,11 @@ def CSZL_HistoryDataAnalysis():
     #读取长策略和短策略联合得出的分析结果
     TempPath = cwd + '\\output\\'+'HisAna.npy'
     HistoryAnaLoaded=np.load(TempPath)
+
+    #CSZL_CodelistToDatelist2(Last20_K_Data)
+    TempPath = cwd + '\\data\\History_data_Datebased.npy'
+    Last20_K_Data_DateBased=np.load(TempPath)
+    #CSZL_DatebasedVolatilityClassifyProp2(Last20_K_Data_DateBased)
 
     #将读取的历史分析数据和进20日数据进行匹配分析
 
@@ -1059,6 +1073,285 @@ def CSZL_HistoryDataAnalysis():
 
 
     zzzz=1
+
+
+def CSZL_CodelistToDatelist2(K_Data,
+    Datas=20,
+    DayEnd=datetime.datetime.now().strftime("%Y-%m-%d")):
+
+    x=K_Data.shape[0]    #4000
+    y=K_Data.shape[1]    #7
+    z=K_Data.shape[2]    #2000
+
+    # 日期 代码 信息
+    DateBasedList=np.zeros((z,x,y),dtype=float)
+
+    days2=Datas*1.5+10
+
+
+    timeArray = time.strptime(DayEnd, "%Y-%m-%d")
+
+    timeNow = datetime.datetime(int(timeArray[0]), int(timeArray[1]), int(timeArray[2]), 12, 0, 0); 
+    DayStart = (timeNow - datetime.timedelta(days = days2)).strftime("%Y-%m-%d")
+
+
+    bufflist=ts.get_k_data('000001',start=DayStart, end=DayEnd, index=True) 
+
+    datelist=bufflist.date.tail(z)
+
+    searchcounter=0
+    updatecounter=0
+
+    i=0
+    for singledatezz in datelist:
+
+        changedate=time.strptime(singledatezz,"%Y-%m-%d")
+        changedate2=time.strftime("%Y%m%d",changedate)
+        changedate3=int(changedate2)
+        
+        DateBasedList[(i,0,0)]=changedate3
+
+        date_index=0
+        for ii in range(x):
+            cur_changedata=K_Data[ii,6,date_index]
+            if(changedate3==cur_changedata):
+                DateBasedList[i,ii,:]=K_Data[ii,:,date_index]
+                DateBasedList[i,ii,6]=K_Data[ii,0,0]
+                
+            else:
+                
+                bufsearch=K_Data[ii,6,:]
+                #从历史数据列表中寻找是否有对应值
+                buff=np.argwhere(bufsearch==changedate3)
+                #如果有指则重新定义历史数据位置
+                if(buff!=None):
+                    foundindex=int(buff)
+                    date_index=foundindex
+                    zzz2=K_Data[(ii,6,date_index)]
+
+                    DateBasedList[i,ii,:]=K_Data[ii,:,date_index]
+                    DateBasedList[i,ii,6]=K_Data[ii,0,0]
+                    
+                    searchcounter+=1
+                else:
+                    
+                    updatecounter+=1
+                    continue
+        i+=1
+        if(i>(K_Data.shape[2]-1)):
+            break;
+
+    '''
+    for i in  range(z):
+        print(DateBasedList[i,0,0])
+        for ii in  range(x):
+            asdad3=DateBasedList[i,ii,3]
+            asdad2=DateBasedList[i,ii,6]
+            print("%2.4f %d " % (asdad3,asdad2))
+            
+        print("\n")
+    '''
+    cwd = os.getcwd()
+
+    txtFileA = cwd + '\\data\\History_data_Datebased.npy'
+    np.save(txtFileA, DateBasedList)
+
+
+
+def CSZL_DatebasedVolatilityClassifyProp2(DateBasedList):
+
+
+    x=DateBasedList.shape[0]    #2000
+    y=DateBasedList.shape[1]    #4000
+    z=DateBasedList.shape[2]    #7  
+
+    
+    #新建5个计数器用来记录5个位置的值
+    SectionCounter=[]
+    SectionCounter2=[]
+    for ii in range(y):
+        temp=CSZLsuperTrain.Z_Counter()
+        temp2=CSZLsuperTrain.RankCal(18)
+        SectionCounter.append(temp)
+        SectionCounter2.append(temp2)
+        del temp
+        del temp2
+
+
+
+    avacounter=0
+
+
+    for i in range(1,x):
+        cur_date=DateBasedList[i,0,0]
+        counter=DateBasedList[i,:,3]
+        a=np.sum(counter!=0)
+        if(a==0):
+            continue
+
+        todaylist=np.where(counter>0)
+        todaylist2=todaylist[0]
+
+        if(i==18):
+            asdad=9
+
+        if(cur_date>20170101):
+            #新建所有数据的空数组用于放置百分比数据
+            RankList_base=np.zeros((y),dtype=float)
+
+            AVG_RankList=np.zeros((y,3),dtype=float)
+
+            #先算出每个数据的百分比
+            for cur_index in todaylist2:
+                code=DateBasedList[i,cur_index,6]
+                last_close=DateBasedList[i-1,cur_index,3]
+                cur_close=DateBasedList[i,cur_index,3]
+
+                if(last_close==0 or cur_close==0 ):
+                    continue
+
+                today_plus=(cur_close-last_close)/last_close
+                RankList_base[cur_index]=today_plus
+
+
+            #找出当天有意义的数据放入待排序列表
+            plus_element_list=RankList_base[todaylist2]
+            #新建一个空的列表用于放置所有排序后的数据
+            RankList=np.zeros((y),dtype=int)
+            #将有意义数据排序并得到index值
+            buf_ranklist=plus_element_list.argsort()
+
+
+            #循环所有有意义数据并将排名值放入原列表(包含无意义值)中的对应位置
+            for cur_i in range(0,buf_ranklist.shape[0]):               
+                #原列表中的 在buf_ranklist的第cur_i个值对应的在todaylist2(有意义对应原列表位置)里面的位置的值是cur_i
+                RankList[todaylist2[buf_ranklist[cur_i]]]=cur_i
+
+
+            
+            testrank=RankList[2029]
+            testper=int(float(testrank)/(float)(todaylist2.shape[0]+1)*20)
+            testcode=DateBasedList[i,2029,6]
+
+            cur_index_counter=0
+
+            #规定日期之内超过则不算
+            if False:
+                for cur_i in range(0,RankList.shape[0]):
+                    if(cur_i!=todaylist2[cur_index_counter]):
+                        continue
+
+                    code=DateBasedList[i,cur_index,6]
+                    last_close=DateBasedList[i-1,cur_index,3]
+                    cur_close=DateBasedList[i,cur_index,3]
+                    next_close=DateBasedList[i+1,cur_index,3]
+                    cur_rank=RankList[cur_index]
+                    #当日的排名0~1，为了让最大值小于1往分母加1
+                    cur_rank_per=float(cur_rank)/(float)(todaylist2.shape[0]+1)
+                    fom_per=int(cur_rank_per*20)
+                    #if(fom_per==10):
+                        #sdfasdfasf=9
+
+                    if(last_close==0 or cur_close==0 or next_close==0):
+                        continue
+
+                    #differper=abs(testper-fom_per)
+                    differper=fom_per-testper
+
+                    SectionCounter[cur_index].Add(differper)
+                    SectionCounter2[cur_index].Add(fom_per,differper)
+
+                    avg=SectionCounter2[cur_index].GetAvg2()
+
+                    if(avg!=0):
+                        AVG_RankList[cur_index,0]=avg
+                        tomorrow_plus=(next_close-cur_close)/cur_close
+                        AVG_RankList[cur_index,1]=tomorrow_plus
+
+                        #avg=SectionCounter2[cur_index].Add(fom_per)      
+                    
+                    if(cur_index_counter<todaylist2.shape[0]):
+                        cur_index_counter+=1
+
+                    sfsefsef=4
+            #无论如何都是20个日期排名
+            else:
+                for cur_index in todaylist2:
+
+                    code=DateBasedList[i,cur_index,6]
+                    last_close=DateBasedList[i-1,cur_index,3]
+                    cur_close=DateBasedList[i,cur_index,3]
+                    #next_close=DateBasedList[i+1,cur_index,3]
+                    cur_rank=RankList[cur_index]
+                    #当日的排名0~1，为了让最大值小于1往分母加1
+                    cur_rank_per=float(cur_rank)/(float)(todaylist2.shape[0]+1)
+                    fom_per=int(cur_rank_per*20)
+                    #if(fom_per==10):
+                        #sdfasdfasf=9
+
+                    if(last_close==0 or cur_close==0 ):
+                        continue
+
+                    differper=abs(testper-fom_per)
+                    #differper=fom_per-testper
+
+                    SectionCounter[cur_index].Add(differper)
+                    SectionCounter2[cur_index].Add(fom_per,differper)
+
+                    avg=SectionCounter2[cur_index].GetAvg2()
+                    AVG_RankList[cur_index,2]=code
+
+                    if(avg!=0):
+                        AVG_RankList[cur_index,0]=avg
+                        #tomorrow_plus=(next_close-cur_close)/cur_close
+                        #AVG_RankList[cur_index,1]=tomorrow_plus
+
+                        #avg=SectionCounter2[cur_index].Add(fom_per)
+
+                
+                    cur_index_counter+=1
+            #         
+
+            #新建一个空的列表用于放置所有排序后的数据
+            Rank20RankList=np.zeros((y,2),dtype=int)
+
+            avg_rankbuff=AVG_RankList[:,0]
+            avg_rankbuff2=np.where(avg_rankbuff>0)
+            avg_rankbuff2=avg_rankbuff2[0]
+
+            buffer2all=avg_rankbuff2.shape[0]
+
+            if(buffer2all!=0):              
+                
+                avg_rankbuff3=avg_rankbuff[avg_rankbuff2]
+                avg_rankbuff4=avg_rankbuff3.argsort()
+
+                
+                for cur_i in range(0,buffer2all):               
+                    final_index=avg_rankbuff2[avg_rankbuff4[cur_i]]
+                    Rank20RankList[final_index,0]=cur_i
+                    
+                    code=AVG_RankList[final_index,2]
+                    Rank20RankList[final_index,1]=code
+                    bufferf3=AVG_RankList[final_index,1]
+
+                    sdjfisjiej=8
+
+                for iii in range(0,y):
+
+                    print("%d %d" % (Rank20RankList[iii,0],Rank20RankList[iii,1]))
+                    #print("%2.4f %2.4f" % (percent))
+
+
+                print("\n")
+                dfseft=9
+
+            avacounter+=1
+
+
+
+        sadfsef=6
+
 
 def k_type_def(D_input,D_index,date_position,response_rate=0.005):
 
