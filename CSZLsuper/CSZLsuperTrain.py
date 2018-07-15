@@ -1116,7 +1116,7 @@ def CSZL_DatebasedVolatilityClassifyProp():
 
 
     SectionCounter3=[]
-    sectionnewtest=40
+    sectionnewtest=20
     for ii in range(sectionnewtest):
         temp=Z_Counter()        
         SectionCounter3.append(temp)
@@ -1139,7 +1139,7 @@ def CSZL_DatebasedVolatilityClassifyProp():
 
 
 
-        if(cur_date>20170101):
+        if(cur_date>20110101):
             #新建所有数据的空数组用于放置百分比数据
             RankList_base=np.zeros((y),dtype=float)
 
@@ -1282,11 +1282,12 @@ def CSZL_DatebasedVolatilityClassifyProp():
                     SectionCounter3[bufferf2].Add(bufferf3)
                     sdjfisjiej=8
 
+                print("%d " % (cur_date),end="")
                 for iii in range(0,sectionnewtest):
                     percent=SectionCounter3[iii].Average()
-
+                    
                     #print("%d %d" % (Rank20RankList[iii],code))
-                    print("%2.4f" % (percent))
+                    print("%2.4f " % (percent),end="")
                     SectionCounter3[iii].Clr()
 
                 print("\n")
@@ -1294,7 +1295,7 @@ def CSZL_DatebasedVolatilityClassifyProp():
 
             avacounter+=1
 
-        if(avacounter>200):
+        if(avacounter>1500):
 
             for ii in range(y):
                 #DateBasedList[1999,ii,6]
@@ -1572,8 +1573,19 @@ def CSZL_SecAnalyseNew():
 
 
     #开始更新sec逻辑
-    SecUse=False
-    SecUseB=True
+    SecUse=True
+    SecUseB=False
+
+
+    SectionCounter3=[]
+    sectionnewtest=40
+    for ii in range(sectionnewtest):
+        temp=Z_Counter()        
+        SectionCounter3.append(temp)
+        del temp
+
+
+
 
     if SecUse:
         #从Secdata中读取文件
@@ -1596,7 +1608,7 @@ def CSZL_SecAnalyseNew():
                 cur_date=float(nums[0])
             else:
                 continue
-            if cur_date==20180419:
+            if cur_date>=20180110 and cur_date<=20180210:
 
                 SecLoaded=np.load(z_file)
 
@@ -1611,13 +1623,65 @@ def CSZL_SecAnalyseNew():
                 z=SecLoaded.shape[2]    #21
 
                 for i in range(x):
-                    if SecLoaded[(i,0,0)]==603937:
+                    if SecLoaded[(i,0,0)]!=0:
+                        #买1价格
+                        buffbuylist=SecLoaded[i,:,6]
+                        bufftimelist=SecLoaded[i,:,0]
+                        #buffbuylist2=SecLoaded[i,:,2]
+                        buffbuylist2=np.where(0<buffbuylist)
+                        buffbuylist2=buffbuylist2[0]
 
+                        buffer2all=buffbuylist2.shape[0]
+                        if(buffer2all!=0):
+                            buf=buffbuylist[buffbuylist2]
+                            buf2=bufftimelist[buffbuylist2]
+                            maxprice=np.max(buf)
+                            minprice=np.min(buf)
+
+                            maxpos=np.where(buf==maxprice)
+                            minpos=np.where(buf==minprice)
+
+                            maxpos2=maxpos[0]
+                            maxpos3=maxpos2[0]
+
+                            minpos2=minpos[0]
+                            minpos3=minpos2[0]
+
+
+                            maxtime=buf2[maxpos]
+                            mintime=buf2[minpos]
+
+                            per=int(maxpos3/(buffer2all+1)*40)
+                            per2=int(minpos3/(buffer2all+1)*40)
+                            test2=maxtime.shape[0]
+                            if(test2!=0):
+                                finaltime=maxtime[0]
+                                finaltime2=mintime[0]
+
+                                SectionCounter3[per2].Add(1)
+                                '''
+                                if(per==0):
+                                    print(finaltime)
+                                    print(SecLoaded[(i,0,0)])
+                                asdadwd=9
+                                '''
+
+                            asdadwd=9
+
+
+                        #卖1价格
+                        '''
                         for ii in range(y):
                             for iii in range(z):
                                 print("%8.2f " % SecLoaded[(i,ii,iii)],end="")
                             print("\n")
                         print("\n")
+                        '''
+
+                        asdadwd=9
+
+                fseere=8
+
                 '''
                 for i in range(x-1):
                     #if SecLoaded[(i,0,0)]==600055:
@@ -1630,6 +1694,17 @@ def CSZL_SecAnalyseNew():
                         #print("\n")
                     #print("\n")
                 '''
+
+
+        for ii in range(40):
+            count=SectionCounter3[ii].Count()
+            print("%d " % count,end="")
+
+        print("\n")
+        finalsefsef=9
+
+
+
 
     if SecUseB:
         #从Secdata中读取文件
@@ -1746,6 +1821,10 @@ def CSZL_TrainMainNEW(g_all_resultin):
     #初始化训练周期
     TrainDate=CSZL_TrainInitNEW()
 
+    #使用sec数据进行的数据分析
+    CSZL_SecAnalyseNew()
+
+    #rank的rank计算(多少日内平均rank排名，同时还可以测试两个股票的相关性)
     CSZL_DatebasedVolatilityClassifyProp()
 
     #改为以date计算的list

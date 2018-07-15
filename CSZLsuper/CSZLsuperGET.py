@@ -930,12 +930,12 @@ def CSZL_HistoryDataAnalysis():
         #HistoryDataInit()
 
         #读取刚刚更新的20日内的k线数据
-        '''
+        
         TempPath = cwd + '\\data\\'+'History_data.npy'
         Last20_K_Data=np.load(TempPath)
 
         CSZL_CodelistToDatelist2(Last20_K_Data)
-        '''
+        
 
     #读取历史分析的k线模块数据
     TempPath = cwd + '\\output\\KtypeThree.npy'
@@ -1298,7 +1298,8 @@ def CSZL_DatebasedVolatilityClassifyProp2(DateBasedList):
                     SectionCounter[cur_index].Add(differper)
                     SectionCounter2[cur_index].Add(fom_per,differper)
 
-                    avg=SectionCounter2[cur_index].GetAvg2()
+                    avg=SectionCounter2[cur_index].GetAvg()
+                    #avg=SectionCounter2[cur_index].GetAvg2()
                     AVG_RankList[cur_index,2]=code
 
                     if(avg!=0):
