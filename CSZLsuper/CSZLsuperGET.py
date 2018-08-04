@@ -22,6 +22,10 @@ import re
 import ctypes
 import CSZLsuperTrain
 
+#序列化和反序列化
+import pickle,pprint
+
+
 z_init_nplist=[]
 g_all_result=[] #实时全局数据表
 g_part_result=[]
@@ -377,6 +381,8 @@ def CSZL_superinit():
 
     #======初始化重要数据======#
     CSZL_SecretDataInit()
+
+    BotInit()
 
     return g_all_result
 
@@ -952,7 +958,7 @@ def CSZL_HistoryDataAnalysis():
     #CSZL_CodelistToDatelist2(Last20_K_Data)
     TempPath = cwd + '\\data\\History_data_Datebased.npy'
     Last20_K_Data_DateBased=np.load(TempPath)
-    #CSZL_DatebasedVolatilityClassifyProp2(Last20_K_Data_DateBased)
+    CSZL_DatebasedVolatilityClassifyProp2(Last20_K_Data_DateBased)
 
     #将读取的历史分析数据和进20日数据进行匹配分析
 
@@ -1171,7 +1177,7 @@ def CSZL_DatebasedVolatilityClassifyProp2(DateBasedList):
     SectionCounter2=[]
     for ii in range(y):
         temp=CSZLsuperTrain.Z_Counter()
-        temp2=CSZLsuperTrain.RankCal(18)
+        temp2=CSZLsuperTrain.RankCal(19)
         SectionCounter.append(temp)
         SectionCounter2.append(temp2)
         del temp
@@ -1352,6 +1358,10 @@ def CSZL_DatebasedVolatilityClassifyProp2(DateBasedList):
 
 
         sadfsef=6
+
+
+
+    finalsdafasf=34
 
 
 def k_type_def(D_input,D_index,date_position,response_rate=0.005):
@@ -1846,6 +1856,149 @@ def DataSave(All_info):
 
             tempall2=str(temp7)+'\t'+str(temp8)+'\t'+str(temp9)+'\t'+str(temp10)
             fobj.write(tempall+tempall2+'\n')
+
+
+def botlogic():
+    
+    data1 = {'a': [1, 2.0, 3, 4+6j],
+             'b': ('string', u'Unicode string'),
+             'c': None}
+
+    selfref_list = [1, 2, 3]
+    selfref_list.append(selfref_list)
+
+    output = open('zdata.pkl', 'wb')
+
+    # Pickle dictionary using protocol 0.
+    pickle.dump(data1, output)
+
+    output.close()
+
+
+
+
+    sdfsdf=6
+
+def BotInit():
+
+    cwd = os.getcwd()
+    txtFileA = cwd + '\\output\\bot_history\\Bots_ALL_buffer.pkl'
+
+
+    if False:
+        #打开历史数据文件
+        pkl_file = open(txtFileA, 'rb')
+        #反序列化回数组
+        Bots_ALL = pickle.load(pkl_file)
+        #关闭文件流
+        pkl_file.close()
+
+    
+    supertest=Bot("",150000)
+
+
+    supertest.buy(600000,1000,23.12)
+    supertest.buy(600000,1000,23.12)
+    supertest.buy(600001,1000,23.12)
+    supertest.buy(600002,1000,23.12)
+    supertest.buy(600000,1000,23.12)
+    supertest.buy(600000,1000,23.12)
+
+    #打开输出文件
+    output = open(txtFileA, 'wb')
+    #序列化保存
+    pickle.dump(supertest, output)
+    #关闭文件流
+    output.close()
+
+
+    sdfsdf=6
+
+
+
+class Bot(object):
+    name="初始姓名"
+
+    Total_asset=100000;
+    Max_Stock=10
+    cur_Stock=0
+    Stock_list=[]
+
+    #初始化统计区间
+    def __init__(self,name,_asset):
+        #code rank
+        self.Total_asset=_asset
+        self.name=name
+        #code 数量 成本 待定 待定 待定
+        self.Stock_list=np.zeros((self.Max_Stock,6),dtype=float)
+
+    def buy(self,code,qty,price):
+
+        zzzbuf=self.Stock_list[:,0]
+        buff=np.argwhere(zzzbuf==code)
+        buff2=np.argwhere(zzzbuf==0)
+        #如果有指则添加
+        if(buff!=None):
+            foundindex=int(buff)
+            zzz2=self.Stock_list[foundindex,0]            
+            self.Stock_list[foundindex,1]+=qty
+            self.Total_asset-=qty*price
+        #没有则新建
+        elif(self.cur_Stock<self.Max_Stock):
+            foundindex=int(buff2[0])
+            self.Stock_list[foundindex,0]=code
+            self.Stock_list[foundindex,1]+=qty
+
+            self.Total_asset-=qty*price
+
+            self.cur_Stock+=1
+
+        #超出退回
+        else:
+            print("wrong")
+            
+            
+
+    def sell(self,code,qty,price):
+        i=0
+        while True:
+            if(self.Stock_list[i,0]==code):
+                self.Stock_list[i,1]=self.Stock_list[i,1]-qty
+                if(self.Stock_list[i,1]==0):
+                    self.Stock_list[i,0]=0
+                    self.Stock_list[i,1]=0
+                    #self.Stock_list[i,2]=0
+                    Total_asset+=qty*price
+                elif(self.Stock_list[i,1]>0):
+                    Total_asset+=qty*price
+
+                else:
+                    print("wrong")
+                break
+
+            if(i==(self.Max_Stock-1)):
+                print("wrong")
+                break
+            i+=1
+        while True:
+            if(self.Stock_list[i,0]==0):
+                self.Stock_list[i,0]=code
+                self.Stock_list[i,1]=qty
+                #self.Stock_list[i,2]=price
+                Total_asset-=qty*price
+
+                break
+            if(i==(self.Max_Stock-1)):
+                print("wrong")
+                break
+            i+=1
+
+
+
+
+
+
+
 
 
 #暂时未使用功能
