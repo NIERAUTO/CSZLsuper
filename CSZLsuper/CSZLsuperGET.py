@@ -1883,7 +1883,7 @@ def BotInit():
 
     cwd = os.getcwd()
     txtFileA = cwd + '\\output\\bot_history\\Bots_ALL_buffer.pkl'
-
+    txtFileB = cwd + '\\output\\bot_history\\Bots_read.csv'
 
     if False:
         #打开历史数据文件
@@ -1893,16 +1893,8 @@ def BotInit():
         #关闭文件流
         pkl_file.close()
 
-    
-    supertest=Bot("",150000)
-
-
-    supertest.buy(600000,1000,23.12)
-    supertest.buy(600000,1000,23.12)
-    supertest.buy(600001,1000,23.12)
-    supertest.buy(600002,1000,23.12)
-    supertest.buy(600000,1000,23.12)
-    supertest.buy(600000,1000,23.12)
+    supertest=VirtualTransaction()
+    writeList2CSV(supertest.His_list,txtFileB)
 
     #打开输出文件
     output = open(txtFileA, 'wb')
@@ -1917,84 +1909,157 @@ def BotInit():
 
 
 class Bot(object):
+    #机器人的姓名
     name="初始姓名"
-
-    Total_asset=100000;
+    #初始资金
+    Init_asset=100000
+    #总资金
+    Total_asset=100000
+    #最多可持有股票数
     Max_Stock=10
+    #当前持有股票数
     cur_Stock=0
+    #持仓列表
     Stock_list=[]
+    #操作列表
+    His_list=[]
 
     #初始化统计区间
     def __init__(self,name,_asset):
-        #code rank
+
+        #确定机器人的资金量
         self.Total_asset=_asset
+        self.Init_asset=_asset
+        #确定机器人的姓名
         self.name=name
-        #code 数量 成本 待定 待定 待定
+        #code 持有数量 成本 可卖数量 当前价 盈亏比率
         self.Stock_list=np.zeros((self.Max_Stock,6),dtype=float)
 
-    def buy(self,code,qty,price):
+    def _buy(self,code,qty,price):
+        #todo整数限制，时间限制
+        #如果钱不够
+        if((self.Total_asset-qty*price)>0):
 
-        zzzbuf=self.Stock_list[:,0]
-        buff=np.argwhere(zzzbuf==code)
-        buff2=np.argwhere(zzzbuf==0)
-        #如果有指则添加
-        if(buff!=None):
-            foundindex=int(buff)
-            zzz2=self.Stock_list[foundindex,0]            
-            self.Stock_list[foundindex,1]+=qty
-            self.Total_asset-=qty*price
-        #没有则新建
-        elif(self.cur_Stock<self.Max_Stock):
-            foundindex=int(buff2[0])
-            self.Stock_list[foundindex,0]=code
-            self.Stock_list[foundindex,1]+=qty
+            #读取持有列表
+            zzzbuf=self.Stock_list[:,0]
+            #寻找这个票是否已经持有
+            buff=np.argwhere(zzzbuf==code)
+            #寻找空位
+            buff2=np.argwhere(zzzbuf==0)
+            #如果有则添加
+            if(buff!=None):
+                foundindex=int(buff)
+                zzz2=self.Stock_list[foundindex,0]            
+                self.Stock_list[foundindex,1]+=qty
+                self.Total_asset-=qty*price
+                return True
+            #没有则新建
+            elif(self.cur_Stock<self.Max_Stock):
+                #光标转换到空位
+                foundindex=int(buff2[0])
+                self.Stock_list[foundindex,0]=code
+                self.Stock_list[foundindex,1]+=qty
 
-            self.Total_asset-=qty*price
+                self.Total_asset-=qty*price
 
-            self.cur_Stock+=1
+                self.cur_Stock+=1
+                return True
 
-        #超出退回
+            #超出购买个数上限
+            else:
+                print("超出购买上限")
+                return False
         else:
-            print("wrong")
-            
-            
+            print("余额不足")
+            return False
 
-    def sell(self,code,qty,price):
+    def buy(self,code,qty,price):
+        if(self._buy(code,qty,price)):
+            #第一个代表买还是卖
+            self.hisupdate(1,code,qty,price)
+            
+    def _sell(self,code,qty,price):
         i=0
         while True:
+            #如果找到
             if(self.Stock_list[i,0]==code):
-                self.Stock_list[i,1]=self.Stock_list[i,1]-qty
-                if(self.Stock_list[i,1]==0):
-                    self.Stock_list[i,0]=0
-                    self.Stock_list[i,1]=0
-                    #self.Stock_list[i,2]=0
-                    Total_asset+=qty*price
-                elif(self.Stock_list[i,1]>0):
-                    Total_asset+=qty*price
-
+                #卖出可卖数量有效计算
+                remainqty=self.Stock_list[i,3]-qty
+                #卖出有效
+                if(remainqty>=0):
+                    #持有数量减少
+                    self.Stock_list[i,1]-=qty
+                    #金钱增加
+                    self.Total_asset+=qty*price
+                    #为0则清空
+                    if(self.Stock_list[i,1]==0):
+                        self.clear(i)
+                        return True
+                    #可卖数量减少
+                    self.Stock_list[i,3]-=qty
+                    
+                    return True
                 else:
-                    print("wrong")
-                break
-
+                    print("卖出错误")
+                    return False
+       
+            #如果快结束还没找到
             if(i==(self.Max_Stock-1)):
-                print("wrong")
-                break
-            i+=1
-        while True:
-            if(self.Stock_list[i,0]==0):
-                self.Stock_list[i,0]=code
-                self.Stock_list[i,1]=qty
-                #self.Stock_list[i,2]=price
-                Total_asset-=qty*price
-
-                break
-            if(i==(self.Max_Stock-1)):
-                print("wrong")
-                break
+                print("超出最多持股数量")
+                return False
             i+=1
 
+    def sell(self,code,qty,price):
+        if(self._sell(code,qty,price)):
+            #第一个代表买还是卖
+            self.hisupdate(2,code,qty,price)
+    #过一个交易日
+    def daypass(self):
+        #所有不可卖出变为可卖出
+        self.Stock_list[:,3]=self.Stock_list[:,1]
+
+    def clear(self,index):
+        self.Stock_list[index,:]=0
+        #减一个位置
+        self.cur_Stock-=1
+    def hisupdate(self,buyflag,code,qty,price):
+        
+        zzz=[buyflag,code,qty,price,self.Total_asset]
+        self.His_list.append(zzz)
+
+def writeList2CSV(myList,filePath):
+    try:
+        file=open(filePath,'w')
+        file.write("买卖标志,代码编号,数量,价格,剩余资金\n") 
+        for items in myList:
+            for item in items:
+                ccc=str(item)
+                file.write(ccc)
+                file.write(",")
+            file.write("\n") 
+    except Exception :
+        print("数据写入失败，请检查文件路径及文件编码是否正确")
+    finally:
+        file.close();# 操作完成一定要关闭
 
 
+def VirtualTransaction():
+    supertest=Bot("测试随机机器人",150000)
+    
+
+    xxx=supertest.buy(600000,1000,23.12)
+    xxx=supertest.buy(600000,1000,23.12)
+    xxx=supertest.buy(600111,100,123.12)
+    xxx=supertest.buy(600002,1000,23.12)
+    xxx=supertest.buy(300000,500,6.12)
+    xxx=supertest.buy(600000,1000,23.12)
+    supertest.daypass()
+    xxx=supertest.sell(600000,700,20.12)
+    xxx=supertest.sell(600000,1700,20.12)
+    xxx=supertest.sell(600111,100,20.12)
+    xxx=supertest.buy(600000,1000,23.12)
+    xxx=supertest.buy(600222,1000,23.12)
+    return supertest
 
 
 
@@ -2002,7 +2067,20 @@ class Bot(object):
 
 
 #暂时未使用功能
-
+def readCSV2List(filePath):
+    try:
+        file=open(filePath,'r',encoding="gbk")# 读取以utf-8
+        context = file.read() # 读取成str
+        list_result=context.split("\n")#  以回车符\n分割成单独的行
+        #每一行的各个元素是以【,】分割的，因此可以
+        length=len(list_result)
+        for i in range(length):
+            list_result[i]=list_result[i].split(",")
+        return list_result
+    except Exception :
+        print("文件读取转换失败，请检查文件路径及文件编码是否正确")
+    finally:
+        file.close();# 操作完成一定要关闭
 def Z_PRINT():
     """
     用来打印信息
