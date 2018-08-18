@@ -27,6 +27,9 @@
     <Compile Include="CSZLsuperTrain.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="CSZLsuperBot.py">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Content Include="data\today_all_data.csv" />
